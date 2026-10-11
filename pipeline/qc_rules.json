@@ -7,12 +7,28 @@
   },
   "range_by_variable": {
     "_doc": "Valori fuori da [min, max] -> flag 2. Pioggia: mm per minuto.",
-    "vwc":  {"min": 0.0,     "max": 0.65},
-    "psi":  {"min": -100000, "max": 0.0},
-    "rain": {"min": 0.0,     "max": 50.0}
+    "vwc": {
+      "min": 0.0,
+      "max": 0.65
+    },
+    "psi": {
+      "min": -100000,
+      "max": 0.0
+    },
+    "rain": {
+      "min": 0.0,
+      "max": 50.0
+    },
+    "t_soil": {
+      "min": -10.0,
+      "max": 50.0
+    }
   },
   "spike_by_series": {
     "_doc": "Picco isolato sui mm/h del pluviometro: scarto da entrambi i valori adiacenti > threshold, con i due adiacenti entro neighbor_tolerance tra loro -> flag 1. Le piene reali (salita/discesa continua) non vengono segnalate.",
-    "VAG_CF_RAIN": {"threshold": 20.0, "neighbor_tolerance": 5.0}
+    "VAG_CF_RAIN": {
+      "threshold": 20.0,
+      "neighbor_tolerance": 5.0
+    }
   }
 }

@@ -47,10 +47,11 @@ STATIONS = {
     "VAG_S3": {
         "name": "Vaglio – Stazione S3 (terreno)",
         "site": "Vaglio di Basilicata", "municipality": "Vaglio di Basilicata (PZ)",
-        "lat": None, "lon": None, "elevation_m": None,
+        "lat": 40.6673775, "lon": 15.9168308, "elevation_m": 939,
         "owner": "da definire",
-        "notes": "Nodo METER per il terreno: TEROS 10 (contenuto d'acqua) e TEROS 21 (potenziale matriciale), "
-                 "profondità 12, 40 e 60 cm. Coordinate da definire.",
+        "device": "METER z6-18720",
+        "notes": "Nodo METER per il terreno (z6-18720): TEROS 10 (contenuto d'acqua), TEROS 21 (potenziale matriciale "
+                 "e temperatura), profondità 12, 40 e 60 cm.",
     },
 }
 
@@ -58,7 +59,7 @@ INSTRUMENTS = {
     "VAG_CF_RAIN": {"station_id": "VAG_CF", "manufacturer": "Centro Funzionale Decentrato Regione Basilicata",
                     "type": "Pluviometro"},
     "VAG_S3_METER": {"station_id": "VAG_S3", "manufacturer": "METER Group",
-                     "type": "Datalogger con sensori TEROS 10 (contenuto d'acqua) e TEROS 21 (potenziale matriciale nel terreno)"},
+                     "type": "Datalogger METER z6-18720 con sensori TEROS 10 (contenuto d'acqua) e TEROS 21 (potenziale matriciale e temperatura nel terreno)"},
 }
 
 VARIABLES = {
@@ -66,6 +67,8 @@ VARIABLES = {
              "notes": "Altezza di pioggia caduta nell'intervallo che termina al timestamp."},
     "vwc": {"label_it": "Contenuto d'acqua del terreno", "label_en": "Soil water content (volumetric)",
             "unit": "m3/m3", "aggregation": "mean", "plot": "line"},
+    "t_soil": {"label_it": "Temperatura del terreno", "label_en": "Soil temperature",
+               "unit": "°C", "aggregation": "mean", "plot": "line"},
     "psi": {"label_it": "Potenziale matriciale del terreno", "label_en": "Soil matric potential",
             "unit": "kPa", "aggregation": "mean", "plot": "line",
             "notes": "Valori negativi = suzione. TEROS 21: accuratezza dichiarata tra -9 e -100 kPa; "
@@ -74,14 +77,16 @@ VARIABLES = {
 
 # mappa delle colonne METER: sensore -> (variabile, colonna dati, porta logger, profondità cm)
 METER_PORTS = {
-    1: ("T10", "vwc", 12), 2: ("T10", "vwc", 40), 3: ("T10", "vwc", 60),
-    4: ("T21", "psi", 12), 5: ("T21", "psi", 40), 6: ("T21", "psi", 60),
+    1: ("T10", 12, ["vwc"]), 2: ("T10", 40, ["vwc"]), 3: ("T10", 60, ["vwc"]),
+    4: ("T21", 12, ["psi", "t_soil"]), 5: ("T21", 40, ["psi", "t_soil"]), 6: ("T21", 60, ["psi", "t_soil"]),
 }
+SHORT = {"vwc": "VWC", "psi": "PSI", "t_soil": "TSOIL"}
 METER_STEP_MIN = 5
 
 
 def sid_of(station, var, depth_cm=None):
-    return f"{station}_{var.upper() if var != 'rain' else 'RAIN'}" + (f"_{depth_cm:03d}" if depth_cm else "")
+    code = "RAIN" if var == "rain" else SHORT[var]
+    return f"{station}_{code}" + (f"_{depth_cm:03d}" if depth_cm else "")
 
 
 def iso(ts):
@@ -154,18 +159,21 @@ def read_soil():
             port = int(m[1])
             if port not in METER_PORTS:
                 continue
-            sensor, var, depth = METER_PORTS[port]
-            col = f"Port{port}-{sensor}-{depth}cm" + ("" if sensor == "T10" else "(kPa)")
-            if col not in df.columns:
-                print("!! colonna non trovata:", name, sheet, col)
-                continue
-            t = pd.to_datetime(df["Time UTC+1"], errors="coerce")
-            v = pd.to_numeric(df[col], errors="coerce")
-            ok = t.notna() & v.notna()
-            sid = sid_of("VAG_S3", var, depth)
-            acc.setdefault(sid, {"var": var, "depth": depth, "port": port, "sensor": sensor, "parts": [], "files": set()})
-            acc[sid]["parts"].append(pd.DataFrame({"time": t[ok], "value": v[ok]}))
-            acc[sid]["files"].add(name)
+            sensor, depth, variables = METER_PORTS[port]
+            base = f"Port{port}-{sensor}-{depth}cm"
+            for var in variables:
+                col = {"vwc": base, "psi": base + "(kPa)", "t_soil": base + "(°C)"}[var]
+                if col not in df.columns:
+                    print("!! colonna non trovata:", name, sheet, col)
+                    continue
+                t = pd.to_datetime(df["Time UTC+1"], errors="coerce")
+                v = pd.to_numeric(df[col], errors="coerce")
+                ok = t.notna() & v.notna()
+                sid = sid_of("VAG_S3", var, depth)
+                acc.setdefault(sid, {"var": var, "depth": depth, "port": port, "sensor": sensor,
+                                     "parts": [], "files": set()})
+                acc[sid]["parts"].append(pd.DataFrame({"time": t[ok], "value": v[ok]}))
+                acc[sid]["files"].add(name)
     out = {}
     for sid, s in acc.items():
         d = pd.concat(s["parts"]).sort_values("time")
@@ -185,7 +193,7 @@ def read_soil():
 # 3. SCRITTURA: dati originali, aggregati, metadati
 # ----------------------------------------------------------------------------
 def fmt_val(x, var):
-    return x.round({"vwc": 4, "psi": 2, "rain": 4}[var])
+    return x.round({"vwc": 4, "psi": 2, "t_soil": 2, "rain": 4}[var])
 
 
 def write_raw(sid, d, var):

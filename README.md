@@ -5,8 +5,9 @@
 Dati di monitoraggio a Vaglio di Basilicata (PZ):
 - **pioggia** dal pluviometro della rete regionale (Centro Funzionale Decentrato Basilicata – Regione Basilicata),
   passo 1 minuto, dal 1 gennaio 2023 al 30 settembre 2026;
-- **contenuto d'acqua volumetrico** e **potenziale matriciale nel terreno** dal nodo S3 (sensori METER TEROS 10 e TEROS 21),
-  profondità 12, 40 e 60 cm, passo 5 minuti, dall'8 agosto 2023 al 31 dicembre 2025.
+- **contenuto d'acqua volumetrico**, **potenziale matriciale** e **temperatura del terreno** dal nodo S3
+  (datalogger METER z6-18720, sensori TEROS 10 e TEROS 21), profondità 12, 40 e 60 cm, passo 5 minuti,
+  dall'8 agosto 2023 al 31 dicembre 2025.
 
 Riferimento temporale unico: **UTC+1** (ora solare, senza ora legale).
 
@@ -15,7 +16,7 @@ Riferimento temporale unico: **UTC+1** (ora solare, senza ora legale).
 | Stazione | Descrizione | Coordinate | Quota |
 |---|---|---|---|
 | `VAG_CF` | Vaglio di Basilicata – pluviometro (rete CFD) | 40°40'10" N, 15°54'55" E (40.669444, 15.915278) | 991 m s.l.m. |
-| `VAG_S3` | Vaglio – Stazione S3 (terreno) | da definire | da definire |
+| `VAG_S3` | Vaglio – Stazione S3 (terreno), datalogger METER z6-18720 | 40.6673775, 15.9168308 | 939 m s.l.m. |
 
 ## Pipeline
 
@@ -66,13 +67,13 @@ data/qc_log.csv            elenco dei valori segnalati e regola applicata
 | `VAG_CF_RAIN` | Pioggia | mm | 1 min |
 | `VAG_S3_VWC_012`, `_040`, `_060` | Contenuto d'acqua del terreno (TEROS 10) | m³/m³ | 5 min |
 | `VAG_S3_PSI_012`, `_040`, `_060` | Potenziale matriciale del terreno (TEROS 21) | kPa | 5 min |
+| `VAG_S3_TSOIL_012`, `_040`, `_060` | Temperatura del terreno (TEROS 21) | °C | 5 min |
 
 ## Note
 
-- I sensori di temperatura del terreno presenti nei file METER non sono caricati in questa versione.
 - Dati del nodo S3 disponibili fino al 31 dicembre 2025; i file 2026 non sono ancora inclusi.
 - Nei file METER alcuni timestamp sono duplicati nella sorgente con valori leggermente diversi: si mantiene il primo, come segnalato in `catalog.json`.
-- Proprietario e coordinate del nodo S3 sono da definire.
+- Proprietario del nodo S3 da definire.
 
 ## Fonti dei dati
 

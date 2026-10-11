@@ -144,7 +144,7 @@
   const axisKey = (i) => (i === 0 ? "yaxis" : "yaxis" + (i + 1));
 
   function drawChart(results) {
-    const order = ["rain", "vwc", "psi"];
+    const order = ["rain", "vwc", "psi", "t_soil"];
     const panels = order.filter((v) => results.some((r) => r.s.variable === v));
     const n = panels.length;
     const gap = 0.07, h = (1 - gap * (n - 1)) / n;

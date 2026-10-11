@@ -1,6 +1,6 @@
 {
   "catalog_version": "0.1",
-  "generated": "2026-10-11T09:39:35+01:00",
+  "generated": "2026-10-11T09:48:54+01:00",
   "conventions": {
     "time_reference": "UTC+1 fisso (ora solare italiana, senza ora legale) per tutte le misure. Timestamp in ISO 8601 con offset '+01:00'. Il pluviometro è convertito da ora locale (CET/CEST); i file METER usano la colonna 'Time UTC+1'.",
     "series_id": "<STAZIONE>_<GRANDEZZA>[_<PROFONDITÀ cm, 3 cifre>]",
@@ -22,6 +22,13 @@
       "label_it": "Contenuto d'acqua del terreno",
       "label_en": "Soil water content (volumetric)",
       "unit": "m3/m3",
+      "aggregation": "mean",
+      "plot": "line"
+    },
+    "t_soil": {
+      "label_it": "Temperatura del terreno",
+      "label_en": "Soil temperature",
+      "unit": "°C",
       "aggregation": "mean",
       "plot": "line"
     },
@@ -51,11 +58,12 @@
       "name": "Vaglio – Stazione S3 (terreno)",
       "site": "Vaglio di Basilicata",
       "municipality": "Vaglio di Basilicata (PZ)",
-      "lat": null,
-      "lon": null,
-      "elevation_m": null,
+      "lat": 40.6673775,
+      "lon": 15.9168308,
+      "elevation_m": 939,
       "owner": "da definire",
-      "notes": "Nodo METER per il terreno: TEROS 10 (contenuto d'acqua) e TEROS 21 (potenziale matriciale), profondità 12, 40 e 60 cm. Coordinate da definire."
+      "device": "METER z6-18720",
+      "notes": "Nodo METER per il terreno (z6-18720): TEROS 10 (contenuto d'acqua), TEROS 21 (potenziale matriciale e temperatura), profondità 12, 40 e 60 cm."
     }
   ],
   "instruments": [
@@ -69,7 +77,7 @@
       "instrument_id": "VAG_S3_METER",
       "station_id": "VAG_S3",
       "manufacturer": "METER Group",
-      "type": "Datalogger con sensori TEROS 10 (contenuto d'acqua) e TEROS 21 (potenziale matriciale nel terreno)"
+      "type": "Datalogger METER z6-18720 con sensori TEROS 10 (contenuto d'acqua) e TEROS 21 (potenziale matriciale e temperatura nel terreno)"
     }
   ],
   "series": [
@@ -474,6 +482,180 @@
       }
     },
     {
+      "series_id": "VAG_S3_TSOIL_012",
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "variable": "t_soil",
+      "depth_m": 0.12,
+      "sensor_model": "TEROS 21",
+      "logger_port": 4,
+      "label": "Temperatura del terreno 12 cm – Vaglio – Stazione S3",
+      "unit": "°C",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2023-08-08T18:15+01:00",
+      "end": "2025-12-31T23:55+01:00",
+      "n_values": 252042,
+      "min": 2.6,
+      "max": 29.0,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2025-12-17T16:20+01:00",
+          "to": "2025-12-18T17:25+01:00",
+          "hours": 25.1
+        }
+      ],
+      "qc_notes": [
+        "15 timestamp duplicati nei file sorgente: mantenuto il primo valore."
+      ],
+      "sources": [
+        {
+          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+        },
+        {
+          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+        },
+        {
+          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_S3_TSOIL_012/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_S3_TSOIL_012_1h.csv",
+        "agg_1d": "data/agg/VAG_S3_TSOIL_012_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 252042,
+        "n_valid": 252042,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 15
+      }
+    },
+    {
+      "series_id": "VAG_S3_TSOIL_040",
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "variable": "t_soil",
+      "depth_m": 0.4,
+      "sensor_model": "TEROS 21",
+      "logger_port": 5,
+      "label": "Temperatura del terreno 40 cm – Vaglio – Stazione S3",
+      "unit": "°C",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2023-08-08T18:15+01:00",
+      "end": "2025-12-31T23:55+01:00",
+      "n_values": 252042,
+      "min": 4.5,
+      "max": 24.6,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2025-12-17T16:20+01:00",
+          "to": "2025-12-18T17:25+01:00",
+          "hours": 25.1
+        }
+      ],
+      "qc_notes": [
+        "15 timestamp duplicati nei file sorgente: mantenuto il primo valore."
+      ],
+      "sources": [
+        {
+          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+        },
+        {
+          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+        },
+        {
+          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_S3_TSOIL_040/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_S3_TSOIL_040_1h.csv",
+        "agg_1d": "data/agg/VAG_S3_TSOIL_040_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 252042,
+        "n_valid": 252042,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 15
+      }
+    },
+    {
+      "series_id": "VAG_S3_TSOIL_060",
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "variable": "t_soil",
+      "depth_m": 0.6,
+      "sensor_model": "TEROS 21",
+      "logger_port": 6,
+      "label": "Temperatura del terreno 60 cm – Vaglio – Stazione S3",
+      "unit": "°C",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2023-08-08T18:15+01:00",
+      "end": "2025-12-31T23:55+01:00",
+      "n_values": 252042,
+      "min": 5.7,
+      "max": 23.4,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2025-12-17T16:20+01:00",
+          "to": "2025-12-18T17:25+01:00",
+          "hours": 25.1
+        }
+      ],
+      "qc_notes": [
+        "15 timestamp duplicati nei file sorgente: mantenuto il primo valore."
+      ],
+      "sources": [
+        {
+          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+        },
+        {
+          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+        },
+        {
+          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_S3_TSOIL_060/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_S3_TSOIL_060_1h.csv",
+        "agg_1d": "data/agg/VAG_S3_TSOIL_060_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 252042,
+        "n_valid": 252042,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 15
+      }
+    },
+    {
       "series_id": "VAG_S3_VWC_012",
       "instrument_id": "VAG_S3_METER",
       "station_id": "VAG_S3",
@@ -666,6 +848,10 @@
       },
       "rain": {
         "min": 0.0,
+        "max": 50.0
+      },
+      "t_soil": {
+        "min": -10.0,
         "max": 50.0
       }
     },
