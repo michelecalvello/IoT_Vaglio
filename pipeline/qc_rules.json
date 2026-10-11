@@ -30,5 +30,14 @@
       "threshold": 20.0,
       "neighbor_tolerance": 5.0
     }
+  },
+  "cumulative": {
+    "_doc": "Pioggia cumulata. Dal 1 gennaio: i buchi tra dati consecutivi più lunghi di gap_min_minutes contano come tempo mancante; quando il tempo mancante cumulato nell'anno supera missing_hours_threshold la cumulata è sottostimata -> flag 1 (tratteggio nel portale). Ultime 24 ore: se nella finestra mobile mancano più di missing_minutes_threshold minuti di dato -> flag 1.",
+    "gap_min_minutes": 60,
+    "missing_hours_threshold": 24,
+    "rolling_24h": {
+      "window_minutes": 1440,
+      "missing_minutes_threshold": 60
+    }
   }
 }

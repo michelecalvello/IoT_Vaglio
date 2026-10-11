@@ -65,6 +65,14 @@ INSTRUMENTS = {
 VARIABLES = {
     "rain": {"label_it": "Pioggia", "label_en": "Rainfall", "unit": "mm", "aggregation": "sum", "plot": "bar",
              "notes": "Altezza di pioggia caduta nell'intervallo che termina al timestamp."},
+    "rain_24h": {"label_it": "Pioggia cumulata nelle ultime 24 ore", "label_en": "Rolling 24-hour rainfall",
+                 "unit": "mm", "aggregation": "last", "plot": "line",
+                 "notes": "Pioggia caduta nelle 24 ore che terminano al timestamp (finestra mobile di 1440 minuti), "
+                          "calcolata ogni minuto. Tratteggiata dove i dati mancanti nella finestra la rendono sottostimata."},
+    "rain_cum": {"label_it": "Pioggia cumulata dal 1° gennaio", "label_en": "Year-to-date rainfall",
+                 "unit": "mm", "aggregation": "last", "plot": "line",
+                 "notes": "Pioggia cumulata dal 1 gennaio ore 00:00 dell'anno corrente (si azzera ogni anno). "
+                          "Tratteggiata dove i dati mancanti rendono la cumulata sottostimata."},
     "vwc": {"label_it": "Contenuto d'acqua del terreno", "label_en": "Soil water content (volumetric)",
             "unit": "m3/m3", "aggregation": "mean", "plot": "line"},
     "t_soil": {"label_it": "Temperatura del terreno", "label_en": "Soil temperature",
@@ -198,7 +206,7 @@ def read_soil():
 # 3. SCRITTURA: dati originali, aggregati, metadati
 # ----------------------------------------------------------------------------
 def fmt_val(x, var):
-    return x.round({"vwc": 4, "psi": 2, "t_soil": 2, "rain": 4}[var])
+    return x.round({"vwc": 4, "psi": 2, "t_soil": 2, "rain": 4, "rain_24h": 3, "rain_cum": 3}[var])
 
 
 def write_raw(sid, d, var):
@@ -255,6 +263,75 @@ def gaps_over_24h(index):
             for i in dt.index[dt > pd.Timedelta(hours=24)]]
 
 
+# ----------------------------------------------------------------------------
+# 4. SERIE DERIVATE DALLA PIOGGIA: cumulata sulle ultime 24 ore e cumulata dal 1 gennaio (passo 1 minuto)
+# ----------------------------------------------------------------------------
+def derive_rain_series(rain):
+    """Restituisce (r24, ytd, years_summary).
+
+    Ogni dato di pioggia è riferito all'intervallo che TERMINA al suo timestamp (stessa convenzione di
+    IoT_CavaSA). Dati mancanti o con flag 2 non contribuiscono alla somma (valgono 0) e rendono la
+    cumulata sottostimata: dove è rilevante la serie ha flag 1 (tratteggio nel portale).
+    """
+    rules = RULES["cumulative"]
+    mm = rain["mm"].where(rain["flag"] < 2)                       # NaN = mancante o errato
+
+    # --- ultime 24 ore: somma mobile dei 1440 minuti che terminano al timestamp
+    W = rules["rolling_24h"]["window_minutes"]
+    roll = mm.fillna(0.0).rolling(W, min_periods=W).sum().clip(lower=0)
+    miss = mm.isna().astype(int).rolling(W, min_periods=W).sum()
+    r24 = pd.DataFrame({"value": roll, "flag": (miss > rules["rolling_24h"]["missing_minutes_threshold"]).astype(int)})
+    r24 = r24[mm.notna() & roll.notna()]
+
+    # --- dal 1 gennaio: anno di cumulo = anno di (timestamp - 1 min); il dato delle 00:00 del 1 gennaio
+    # chiude l'anno precedente e la cumulata riparte da 0 con il dato successivo
+    d = mm.dropna().rename("value").to_frame()
+    d["cy"] = (d.index - pd.Timedelta(minutes=1)).year
+    d = d[d["cy"] >= RAIN_START.year]                             # il primo dato (00:00 del 1/1/2023) è del 2022
+    d["cum"] = d.groupby("cy")["value"].cumsum()
+    first = d["cy"] != d["cy"].shift(1)
+    year_start = pd.to_datetime(d["cy"].astype(str) + "-01-01")
+    tt = pd.Series(d.index, index=d.index)
+    prev = tt.shift(1).where(~first, year_start)
+    gap_min = (tt - prev).dt.total_seconds() / 60
+    miss_min = (gap_min - 1.0).where(gap_min > rules["gap_min_minutes"], 0.0).clip(lower=0)
+    d["miss_h"] = miss_min.groupby(d["cy"]).cumsum() / 60
+    d["flag"] = (d["miss_h"] > rules["missing_hours_threshold"]).astype(int)
+    ytd = pd.DataFrame({"value": d["cum"].clip(lower=0), "flag": d["flag"]})
+
+    years = []
+    for y, g in d.groupby("cy"):
+        years.append({"year": int(y), "total_mm": round(float(g["cum"].iloc[-1]), 1), "n": int(len(g)),
+                      "first": g.index[0].strftime(TFMT), "last": g.index[-1].strftime(TFMT),
+                      "missing_hours": round(float(g["miss_h"].iloc[-1]), 1), "complete": bool((g["flag"] == 0).all())})
+    return r24, ytd, years
+
+
+def agg_derived(d, freq):
+    """Aggregati di una serie cumulata: value = ultimo valore dell'intervallo (cumulata a fine intervallo)."""
+    rs = d.resample(freq, closed="right", label="left")
+    full = pd.Series(1, index=pd.date_range(d.index.min(), d.index.max(), freq="1min"))
+    exp = full.resample(freq, closed="right", label="left").sum()
+    out = pd.DataFrame({"value": rs["value"].last(), "min": rs["value"].min(), "max": rs["value"].max(),
+                        "n": rs["value"].count(), "flag": rs["flag"].max()})
+    out = out[out["n"] > 0].copy()
+    out["coverage"] = (out["n"] / exp.reindex(out.index)).clip(upper=1).round(3)
+    out["flag"] = out["flag"].astype(int)
+    return out[["value", "min", "max", "n", "coverage", "flag"]]
+
+
+def save_agg_derived(sid, a, var, rule):
+    a = a.copy()
+    for c in ("value", "min", "max"):
+        a[c] = fmt_val(a[c], var)
+    a["n"] = a["n"].astype(int)
+    a.index = a.index.strftime("%Y-%m-%d" if rule == "1d" else TFMT)
+    a.index.name = "time"
+    path = os.path.join(OUT_DIR, "data", "agg", f"{sid}_{rule}.csv")
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    a.to_csv(path)
+
+
 def main():
     os.makedirs(os.path.join(OUT_DIR, "data"), exist_ok=True)
     log, catalog_series, source_files = [], [], []
@@ -287,6 +364,48 @@ def main():
                        "n_suspect": int((rain_d.flag == 1).sum()), "n_bad": int((rain_d.flag == 2).sum()),
                        "duplicates_removed": 0},
     })
+
+    # --- serie derivate: pioggia cumulata 24 h e dal 1 gennaio (1 minuto)
+    r24, ytd, years_summary = derive_rain_series(rain)
+    st_name = STATIONS["VAG_CF"]["name"]
+    totals = "; ".join(f"{r['year']}: {r['total_mm']:.1f} mm" + ("" if r["complete"] else " (incompleto)")
+                       for r in years_summary)
+    for suffix, var, d, label, qc_notes, extra in (
+        ("RAIN24H", "rain_24h", r24, "Pioggia cumulata nelle ultime 24 ore",
+         ["Serie derivata da VAG_CF_RAIN: somma mobile dei 1440 minuti che terminano al timestamp (ogni dato di pioggia è "
+          "riferito all'intervallo che termina al suo timestamp), calcolata a passo 1 minuto sui dati con flag < 2.",
+          "Prima finestra completa: 2023-01-01 23:59 (UTC+1). Nei minuti senza dato di pioggia la serie non ha valore.",
+          f"flag 1 (tratteggio nel portale): più di {RULES['cumulative']['rolling_24h']['missing_minutes_threshold']} minuti "
+          "mancanti nella finestra di 24 ore: il valore è sottostimato.",
+          "Aggregati: value = valore a fine intervallo, min e max = estremi nell'intervallo (il massimo giornaliero è la "
+          "massima pioggia in 24 ore)."], {}),
+        ("RAINCUM", "rain_cum", ytd, "Pioggia cumulata dal 1° gennaio",
+         ["Serie derivata da VAG_CF_RAIN: pioggia cumulata dal 1 gennaio ore 00:00 (si azzera ogni anno), calcolata sui dati "
+          "con flag < 2. Il dato delle 00:00 del 1 gennaio chiude l'anno precedente.",
+          "Totali: " + totals + ". Il 2026 arriva al 30 settembre.",
+          f"flag 1 (tratteggio nel portale): più di {RULES['cumulative']['missing_hours_threshold']} ore di dati mancanti "
+          f"nell'anno (lacune > {RULES['cumulative']['gap_min_minutes']} minuti): cumulata sottostimata."],
+         {"cumulative_years": years_summary}),
+    ):
+        sid = f"VAG_CF_{suffix}"
+        years = write_raw(sid, d, var)
+        for rule, freq in (("10min", "10min"), ("1h", "1h"), ("1d", "1D")):
+            save_agg_derived(sid, agg_derived(d, freq), var, rule)
+        catalog_series.append({
+            "series_id": sid, "instrument_id": "VAG_CF_RAIN", "station_id": "VAG_CF", "variable": var,
+            "depth_m": None, "sensor_model": None, "logger_port": None,
+            "label": f"{label} – {st_name}", "unit": "mm", "aggregation": "last", "step_min": 1.0,
+            "start": iso(d.index.min()), "end": iso(d.index.max()), "n_values": int(len(d)),
+            "min": 0.0, "max": round(float(d.value.max()), 2), "status": "active",
+            "gaps_over_24h": gaps_over_24h(d.index), "qc_notes": qc_notes, "sources": [],
+            "derived_from": "VAG_CF_RAIN", **extra,
+            "data": {"format": "csv: time,value,flag", "raw": f"data/raw/{sid}/{{year}}.csv", "years": years,
+                     "agg_10min": f"data/agg/{sid}_10min.csv", "agg_1h": f"data/agg/{sid}_1h.csv",
+                     "agg_1d": f"data/agg/{sid}_1d.csv"},
+            "qc_summary": {"n_total": int(len(d)), "n_valid": int((d.flag == 0).sum()),
+                           "n_suspect": int((d.flag == 1).sum()), "n_bad": 0, "duplicates_removed": 0},
+        })
+        print(f"{sid}: {len(d)} valori, flag 1: {int((d.flag == 1).sum())}, max {d.value.max():.1f} mm")
 
     # --- terreno
     soil, soil_files = read_soil()
@@ -354,7 +473,7 @@ def main():
     flat = pd.DataFrame([{k: s[k] for k in ("series_id", "station_id", "instrument_id", "variable", "label",
                                              "unit", "depth_m", "sensor_model", "logger_port", "aggregation",
                                              "step_min", "start", "end", "n_values", "min", "max", "status")}
-                         | {"n_gaps_over_24h": len(s["gaps_over_24h"])} for s in catalog_series])
+                         | {"derived_from": s.get("derived_from"), "n_gaps_over_24h": len(s["gaps_over_24h"])} for s in catalog_series])
     flat.to_csv(os.path.join(OUT_DIR, "series.csv"), index=False, encoding="utf-8-sig")
     print(flat[["series_id", "unit", "start", "end", "n_values", "n_gaps_over_24h"]].to_string(index=False))
 

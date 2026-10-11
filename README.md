@@ -53,7 +53,7 @@ index.html, assets/        portale statico (Plotly, Leaflet) – nessun backend
 catalog.json               metadati: stazioni, strumenti, serie, percorsi dei file, riepilogo QC
 series.csv                 vista piatta del catalogo (Excel)
 pipeline/                  script di generazione e regole QC
-data/raw/<serie>/<anno>.csv          time,value,flag                 dato originale
+data/raw/<serie>/<anno>.csv          time,value,flag                 dato originale (anche le serie derivate, a 1 minuto)
 data/agg/<serie>_10min.csv           time,value,max,n,coverage       pioggia, aggregato a 10 minuti
 data/agg/<serie>_1h.csv              time,value,[min],max,n,coverage aggregato orario
 data/agg/<serie>_1d.csv              idem, giornaliero
@@ -72,9 +72,26 @@ data/qc_log.csv            elenco dei valori segnalati e regola applicata
 | Serie | Grandezza | Unità | Passo |
 |---|---|---|---|
 | `VAG_CF_RAIN` | Pioggia | mm | 1 min |
+| `VAG_CF_RAIN24H` | Pioggia cumulata nelle ultime 24 ore (derivata da `VAG_CF_RAIN`) | mm | 1 min |
+| `VAG_CF_RAINCUM` | Pioggia cumulata dal 1° gennaio (derivata da `VAG_CF_RAIN`) | mm | 1 min |
 | `VAG_S3_VWC_012`, `_040`, `_060` | Contenuto d'acqua del terreno (TEROS 10) | m³/m³ | 5 min |
 | `VAG_S3_PSI_012`, `_040`, `_060` | Potenziale matriciale del terreno (TEROS 21) | kPa | 5 min |
 | `VAG_S3_TSOIL_012`, `_040`, `_060` | Temperatura del terreno (TEROS 21) | °C | 5 min |
+
+## Serie derivate dalla pioggia
+
+Calcolate dallo script a passo 1 minuto, come il dato originale; ogni dato di pioggia è riferito all'intervallo che termina al suo timestamp.
+
+- **`VAG_CF_RAIN24H`** – pioggia caduta nelle 24 ore che terminano al timestamp (somma mobile di 1440 minuti). Prima finestra completa: 2023-01-01 23:59.
+  Nei minuti senza dato di pioggia la serie non ha valore. A mezzanotte coincide con il totale giornaliero del giorno appena concluso;
+  il massimo giornaliero degli aggregati è la massima pioggia in 24 ore (73,0 mm il 15 aprile 2026).
+- **`VAG_CF_RAINCUM`** – pioggia cumulata dal 1 gennaio ore 00:00, azzerata ogni anno. Il dato delle 00:00 del 1 gennaio chiude l'anno precedente
+  (totale annuo), la cumulata riparte da 0 con il dato successivo. Totali: 2023 746,7 mm; 2024 616,6 mm; 2025 584,6 mm; 2026 (al 30 settembre) 660,8 mm.
+- **Dati mancanti e flag**: i minuti senza dato valgono 0 nella somma, quindi la cumulata è sottostimata. `flag` = 1 (tratteggio nel portale) quando
+  nella finestra di 24 ore mancano più di 60 minuti di dato (3 episodi: 18 giugno 2025, 14 ottobre 2025, 3 febbraio 2026), oppure quando nell'anno
+  mancano più di 24 ore (lacune > 60 minuti): finora mai. Le soglie sono in `pipeline/qc_rules.json` (blocco `cumulative`).
+- **Aggregati** (10 minuti, 1 ora, 1 giorno): `value` = valore a fine intervallo (cumulata a fine intervallo), `min` e `max` = estremi nell'intervallo,
+  `flag` = massimo del flag; `n` e `coverage` come per le altre serie.
 
 ## Note
 
