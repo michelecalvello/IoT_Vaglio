@@ -38,17 +38,17 @@ def dms(g, m, s):
 
 STATIONS = {
     "VAG_CF": {
-        "name": "Vaglio di Basilicata – pluviometro (rete CFD)",
+        "name": "Vaglio di Basilicata (pluviometro CFD)",
         "site": "Vaglio di Basilicata", "municipality": "Vaglio di Basilicata (PZ)",
         "lat": dms(40, 40, 10), "lon": dms(15, 54, 55), "elevation_m": 991,
         "owner": "Centro Funzionale Decentrato Basilicata – Regione Basilicata",
         "notes": "Pluviometro della rete regionale. Coordinate: 40°40'10\" N, 15°54'55\" E; altitudine 991 m s.l.m.",
     },
     "VAG_S3": {
-        "name": "Vaglio – Stazione S3 (terreno)",
+        "name": "Vaglio – Nodo S3 (METER z6-18720)",
         "site": "Vaglio di Basilicata", "municipality": "Vaglio di Basilicata (PZ)",
         "lat": 40.6673775, "lon": 15.9168308, "elevation_m": 939,
-        "owner": "da definire",
+        "owner": "Università di Salerno",
         "device": "METER z6-18720",
         "notes": "Nodo METER per il terreno (z6-18720): TEROS 10 (contenuto d'acqua), TEROS 21 (potenziale matriciale "
                  "e temperatura), profondità 12, 40 e 60 cm.",
@@ -84,6 +84,11 @@ SHORT = {"vwc": "VWC", "psi": "PSI", "t_soil": "TSOIL"}
 METER_STEP_MIN = 5
 
 
+def clean_name(name):
+    """Toglie il prefisso esadecimale aggiunto dal caricamento dei file (es. '78de54a5-')."""
+    return re.sub(r"^[0-9a-f]{8}-", "", name)
+
+
 def sid_of(station, var, depth_cm=None):
     code = "RAIN" if var == "rain" else SHORT[var]
     return f"{station}_{code}" + (f"_{depth_cm:03d}" if depth_cm else "")
@@ -111,7 +116,7 @@ def read_rain():
         if len(lines) < 3 or not lines[1].startswith("Giorno Ora"):
             print("!! formato non riconosciuto:", os.path.basename(p))
             continue
-        used.append(os.path.basename(p))
+        used.append(clean_name(os.path.basename(p)))
         for line in lines[2:]:
             parts = line.split(";")
             if len(parts) != 3 or parts[2].strip('"') != "mm/h":
@@ -149,7 +154,7 @@ def read_rain():
 def read_soil():
     acc, used = {}, []
     for p in sorted(glob.glob(os.path.join(INPUT_DIR, "*Meter*.xlsx"))):
-        name = os.path.basename(p)
+        name = clean_name(os.path.basename(p))
         used.append(name)
         x = pd.read_excel(p, sheet_name=None, engine="openpyxl")
         for sheet, df in x.items():
@@ -302,7 +307,7 @@ def main():
             "series_id": sid, "instrument_id": "VAG_S3_METER", "station_id": "VAG_S3", "variable": var,
             "depth_m": s["depth"] / 100, "sensor_model": "TEROS 10" if s["sensor"] == "T10" else "TEROS 21",
             "logger_port": s["port"],
-            "label": f"{VARIABLES[var]['label_it']} {s['depth']} cm – Vaglio – Stazione S3",
+            "label": f"{VARIABLES[var]['label_it']} {s['depth']} cm – Vaglio – Nodo S3",
             "unit": VARIABLES[var]["unit"], "aggregation": "mean", "step_min": float(METER_STEP_MIN),
             "start": iso(d.index.min()), "end": iso(d.index.max()),
             "n_values": int(len(d)), "min": float(d.value.min()), "max": float(d.value.max()),

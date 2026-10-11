@@ -11,12 +11,19 @@ Dati di monitoraggio a Vaglio di Basilicata (PZ):
 
 Riferimento temporale unico: **UTC+1** (ora solare, senza ora legale).
 
+## Portale
+
+Stesso aspetto e stessi comandi del portale [IoT_CavaSA](https://michelecalvello.github.io/IoT_CavaSA/): tema chiaro/scuro (pulsante ◐),
+mappa delle stazioni e elenco delle serie a sinistra; in alto barra con intervallo di date, scelte rapide (1 g, 7 g, 30 g, 1 anno, Tutto),
+risoluzione (automatica, giornaliera, oraria, 10 minuti per la pioggia, dato originale) e modalità del grafico (pannelli o assi multipli);
+statistiche nell'intervallo visibile, esportazione CSV e scheda dei metadati (ⓘ) per ogni serie. Lo stato è nell'URL e si può condividere.
+
 ## Stazioni
 
 | Stazione | Descrizione | Coordinate | Quota |
 |---|---|---|---|
 | `VAG_CF` | Vaglio di Basilicata – pluviometro (rete CFD) | 40°40'10" N, 15°54'55" E (40.669444, 15.915278) | 991 m s.l.m. |
-| `VAG_S3` | Vaglio – Stazione S3 (terreno), datalogger METER z6-18720 | 40.6673775, 15.9168308 | 939 m s.l.m. |
+| `VAG_S3` | Vaglio – Nodo S3 (terreno), datalogger METER z6-18720, Università di Salerno | 40.6673775, 15.9168308 | 939 m s.l.m. |
 
 ## Pipeline
 
@@ -73,12 +80,11 @@ data/qc_log.csv            elenco dei valori segnalati e regola applicata
 
 - Dati del nodo S3 disponibili fino al 31 dicembre 2025; i file 2026 non sono ancora inclusi.
 - Nei file METER alcuni timestamp sono duplicati nella sorgente con valori leggermente diversi: si mantiene il primo, come segnalato in `catalog.json`.
-- Proprietario del nodo S3 da definire.
 
 ## Fonti dei dati
 
 - Pluviometro di Vaglio di Basilicata: Centro Funzionale Decentrato Basilicata – Regione Basilicata.
-- Nodo S3 (terreno): proprietario da definire.
+- Nodo S3 (terreno): Università di Salerno.
 
 ## Visualizzare il portale in locale
 

@@ -1,11 +1,11 @@
 ﻿series_id,station_id,instrument_id,variable,label,unit,depth_m,sensor_model,logger_port,aggregation,step_min,start,end,n_values,min,max,status,n_gaps_over_24h
 VAG_CF_RAIN,VAG_CF,VAG_CF_RAIN,rain,Pioggia – Vaglio di Basilicata (pluviometro CFD),mm,,,,sum,1.0,2023-01-01T00:00+01:00,2026-09-30T22:59+01:00,1970369,0.0,2.7183333333333333,active,0
-VAG_S3_PSI_012,VAG_S3,VAG_S3_METER,psi,Potenziale matriciale del terreno 12 cm – Vaglio – Stazione S3,kPa,0.12,TEROS 21,4.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,-1755.9,-0.1,active,1
-VAG_S3_PSI_040,VAG_S3,VAG_S3_METER,psi,Potenziale matriciale del terreno 40 cm – Vaglio – Stazione S3,kPa,0.4,TEROS 21,5.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,-1986.5,-0.1,active,1
-VAG_S3_PSI_060,VAG_S3,VAG_S3_METER,psi,Potenziale matriciale del terreno 60 cm – Vaglio – Stazione S3,kPa,0.6,TEROS 21,6.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,-1174.3,-0.1,active,1
-VAG_S3_TSOIL_012,VAG_S3,VAG_S3_METER,t_soil,Temperatura del terreno 12 cm – Vaglio – Stazione S3,°C,0.12,TEROS 21,4.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,2.6,29.0,active,1
-VAG_S3_TSOIL_040,VAG_S3,VAG_S3_METER,t_soil,Temperatura del terreno 40 cm – Vaglio – Stazione S3,°C,0.4,TEROS 21,5.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,4.5,24.6,active,1
-VAG_S3_TSOIL_060,VAG_S3,VAG_S3_METER,t_soil,Temperatura del terreno 60 cm – Vaglio – Stazione S3,°C,0.6,TEROS 21,6.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,5.7,23.4,active,1
-VAG_S3_VWC_012,VAG_S3,VAG_S3_METER,vwc,Contenuto d'acqua del terreno 12 cm – Vaglio – Stazione S3,m3/m3,0.12,TEROS 10,1.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,0.223,0.435,active,1
-VAG_S3_VWC_040,VAG_S3,VAG_S3_METER,vwc,Contenuto d'acqua del terreno 40 cm – Vaglio – Stazione S3,m3/m3,0.4,TEROS 10,2.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,0.21,0.376,active,1
-VAG_S3_VWC_060,VAG_S3,VAG_S3_METER,vwc,Contenuto d'acqua del terreno 60 cm – Vaglio – Stazione S3,m3/m3,0.6,TEROS 10,3.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,0.242,0.411,active,1
+VAG_S3_PSI_012,VAG_S3,VAG_S3_METER,psi,Potenziale matriciale del terreno 12 cm – Vaglio – Nodo S3,kPa,0.12,TEROS 21,4.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,-1755.9,-0.1,active,1
+VAG_S3_PSI_040,VAG_S3,VAG_S3_METER,psi,Potenziale matriciale del terreno 40 cm – Vaglio – Nodo S3,kPa,0.4,TEROS 21,5.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,-1986.5,-0.1,active,1
+VAG_S3_PSI_060,VAG_S3,VAG_S3_METER,psi,Potenziale matriciale del terreno 60 cm – Vaglio – Nodo S3,kPa,0.6,TEROS 21,6.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,-1174.3,-0.1,active,1
+VAG_S3_TSOIL_012,VAG_S3,VAG_S3_METER,t_soil,Temperatura del terreno 12 cm – Vaglio – Nodo S3,°C,0.12,TEROS 21,4.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,2.6,29.0,active,1
+VAG_S3_TSOIL_040,VAG_S3,VAG_S3_METER,t_soil,Temperatura del terreno 40 cm – Vaglio – Nodo S3,°C,0.4,TEROS 21,5.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,4.5,24.6,active,1
+VAG_S3_TSOIL_060,VAG_S3,VAG_S3_METER,t_soil,Temperatura del terreno 60 cm – Vaglio – Nodo S3,°C,0.6,TEROS 21,6.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,5.7,23.4,active,1
+VAG_S3_VWC_012,VAG_S3,VAG_S3_METER,vwc,Contenuto d'acqua del terreno 12 cm – Vaglio – Nodo S3,m3/m3,0.12,TEROS 10,1.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,0.223,0.435,active,1
+VAG_S3_VWC_040,VAG_S3,VAG_S3_METER,vwc,Contenuto d'acqua del terreno 40 cm – Vaglio – Nodo S3,m3/m3,0.4,TEROS 10,2.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,0.21,0.376,active,1
+VAG_S3_VWC_060,VAG_S3,VAG_S3_METER,vwc,Contenuto d'acqua del terreno 60 cm – Vaglio – Nodo S3,m3/m3,0.6,TEROS 10,3.0,mean,5.0,2023-08-08T18:15+01:00,2025-12-31T23:55+01:00,252042,0.242,0.411,active,1

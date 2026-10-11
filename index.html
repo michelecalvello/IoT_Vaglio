@@ -1,63 +1,106 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>IoT Vaglio – Portale dei dati di monitoraggio</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-  <link rel="stylesheet" href="assets/style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monitoraggio Vaglio di Basilicata</title>
+<meta name="description" content="Portale per la visualizzazione e il confronto dei dati di monitoraggio a Vaglio di Basilicata (pioggia, contenuto d'acqua, potenziale matriciale e temperatura del terreno).">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<header>
-  <h1>Vaglio di Basilicata – Portale dei dati di monitoraggio</h1>
-  <p class="sub">Pioggia (pluviometro della rete regionale) e contenuto d'acqua e potenziale matriciale nel terreno (nodo S3).
-    Tutti gli orari sono in UTC+1.</p>
+<header class="topbar">
+  <div class="brand">
+    <h1>Monitoraggio Vaglio di Basilicata</h1>
+    <span class="sub">Pioggia · Terreno — orari in UTC+1</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button id="themeBtn" class="ghost" type="button" title="Tema chiaro/scuro">◐</button>
+  </div>
 </header>
 
-<main>
-  <aside>
-    <h2>Serie</h2>
-    <div id="series-list"></div>
+<main class="layout">
+  <aside class="sidebar">
+    <section class="panel">
+      <h2>Stazioni</h2>
+      <div id="map" aria-label="Mappa delle stazioni"></div>
+      <div class="map-legend small"><span class="lg"><span class="dot unisa"></span>Università di Salerno</span>
+        <span class="lg"><span class="dot cf"></span>Centro Funzionale Basilicata</span></div>
+      <p id="mapNote" class="muted small"></p>
+    </section>
 
-    <h2>Periodo e risoluzione</h2>
-    <label>Dal <input type="datetime-local" id="from"></label>
-    <label>Al <input type="datetime-local" id="to"></label>
-    <label>Risoluzione
-      <select id="res">
-        <option value="auto">Automatica</option>
-        <option value="raw">Dato originale (1 min pioggia, 5 min terreno)</option>
-        <option value="10min">10 minuti (solo pioggia)</option>
-        <option value="1h">1 ora</option>
-        <option value="1d">1 giorno</option>
-      </select>
-    </label>
-    <div class="buttons">
-      <button id="csv">Scarica CSV</button>
-    </div>
-
-    <h2>Stazioni</h2>
-    <div id="map"></div>
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Serie</h2>
+        <button id="clearBtn" class="link" type="button">Deseleziona</button>
+      </div>
+      <div class="filters">
+        <select id="fStation" aria-label="Filtra per stazione"></select>
+        <select id="fVariable" aria-label="Filtra per grandezza"></select>
+      </div>
+      <div id="seriesList" class="series-list"></div>
+      <p class="muted small">Max 20 serie contemporaneamente. Clic su ⓘ per i metadati.</p>
+    </section>
   </aside>
 
-  <section>
-    <div id="status" class="status"></div>
-    <div id="chart"></div>
+  <section class="content">
+    <div class="toolbar">
+      <div class="group">
+        <label>Da <input type="date" id="dFrom"></label>
+        <label>A <input type="date" id="dTo"></label>
+        <div class="presets" role="group" aria-label="Intervalli rapidi">
+          <button type="button" data-days="1">1 g</button>
+          <button type="button" data-days="7">7 g</button>
+          <button type="button" data-days="30">30 g</button>
+          <button type="button" data-days="365">1 anno</button>
+          <button type="button" data-days="all">Tutto</button>
+        </div>
+      </div>
+      <div class="group">
+        <label>Risoluzione
+          <select id="resSel">
+            <option value="auto">Automatica</option>
+            <option value="1d">Giornaliera</option>
+            <option value="1h">Oraria</option>
+            <option value="10min">10 minuti (pioggia)</option>
+            <option value="raw">Dato originale</option>
+          </select>
+        </label>
+        <div class="seg" role="group" aria-label="Modalità grafico">
+          <button type="button" data-mode="panels" class="on">Pannelli</button>
+          <button type="button" data-mode="overlay">Assi multipli</button>
+        </div>
+        <label class="check" title="Solo in modalità Pannelli; i pannelli di pioggia condividono la stessa scala"><input type="checkbox" id="splitRain"> Piogge in pannelli separati</label>
+        <label class="check"><input type="checkbox" id="logSuction"> Suzione |ψ| log</label>
+      </div>
+    </div>
 
-    <h2>Statistiche nel periodo visualizzato</h2>
-    <div id="stats"></div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <div id="chart" class="chart"></div>
 
-    <h2>Metadati delle serie selezionate</h2>
-    <div id="meta"></div>
+    <section class="panel stats-panel">
+      <div class="panel-head">
+        <h2>Statistiche nell'intervallo visibile</h2>
+        <button id="exportBtn" type="button">Esporta CSV</button>
+      </div>
+      <div class="table-wrap"><table id="statsTable"></table></div>
+    </section>
   </section>
 </main>
 
-<footer>
-  Dati: Centro Funzionale Decentrato Basilicata – Regione Basilicata (pluviometro); nodo S3 nel terreno (proprietario da definire).
-  Dati originali e aggregati in <code>data/</code>; metadati in <code>catalog.json</code>.
+<dialog id="infoDlg">
+  <form method="dialog"><button class="close" aria-label="Chiudi">×</button></form>
+  <div id="infoBody"></div>
+</dialog>
+
+<footer class="foot muted small">
+  Dati: Università di Salerno (nodo S3, METER z6-18720: sensori TEROS 10 e TEROS 21 a 12, 40 e 60 cm) · Centro Funzionale Decentrato
+  della Regione Basilicata (pluviometro di Vaglio di Basilicata, 40°40'10" N, 15°54'55" E, 991 m s.l.m.).
+  <a href="catalog.json">catalog.json</a> · <a href="https://github.com/michelecalvello/IoT_Vaglio">GitHub</a>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

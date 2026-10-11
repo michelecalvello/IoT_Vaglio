@@ -1,6 +1,6 @@
 {
   "catalog_version": "0.1",
-  "generated": "2026-10-11T09:48:54+01:00",
+  "generated": "2026-10-11T10:04:24+01:00",
   "conventions": {
     "time_reference": "UTC+1 fisso (ora solare italiana, senza ora legale) per tutte le misure. Timestamp in ISO 8601 con offset '+01:00'. Il pluviometro è convertito da ora locale (CET/CEST); i file METER usano la colonna 'Time UTC+1'.",
     "series_id": "<STAZIONE>_<GRANDEZZA>[_<PROFONDITÀ cm, 3 cifre>]",
@@ -44,7 +44,7 @@
   "stations": [
     {
       "station_id": "VAG_CF",
-      "name": "Vaglio di Basilicata – pluviometro (rete CFD)",
+      "name": "Vaglio di Basilicata (pluviometro CFD)",
       "site": "Vaglio di Basilicata",
       "municipality": "Vaglio di Basilicata (PZ)",
       "lat": 40.669444,
@@ -55,13 +55,13 @@
     },
     {
       "station_id": "VAG_S3",
-      "name": "Vaglio – Stazione S3 (terreno)",
+      "name": "Vaglio – Nodo S3 (METER z6-18720)",
       "site": "Vaglio di Basilicata",
       "municipality": "Vaglio di Basilicata (PZ)",
       "lat": 40.6673775,
       "lon": 15.9168308,
       "elevation_m": 939,
-      "owner": "da definire",
+      "owner": "Università di Salerno",
       "device": "METER z6-18720",
       "notes": "Nodo METER per il terreno (z6-18720): TEROS 10 (contenuto d'acqua), TEROS 21 (potenziale matriciale e temperatura), profondità 12, 40 e 60 cm."
     }
@@ -106,183 +106,183 @@
       ],
       "sources": [
         {
-          "file": "0080266d-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2026_-_31_08_2026.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2026_-_31_08_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "03dcd15e-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2026_-_31_05_2026.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2026_-_31_05_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "103ae0d8-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2026_-_30_06_2026.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2026_-_30_06_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "15dd72dc-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2026_-_31_03_2026.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2026_-_31_03_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "2bd0cae6-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2023_-_28_02_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2023_-_28_02_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "2e124e87-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2024_-_31_10_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2024_-_31_10_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "2f910790-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2023_-_31_03_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2023_-_31_03_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "39ab5898-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2023_-_30_06_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2023_-_30_06_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "3e8829dd-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2025_-_30_09_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2025_-_30_09_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "3f3cb8c5-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2025_-_31_10_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2025_-_31_10_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "494e4b9c-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2023_-_30_09_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2023_-_30_09_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "49a0687f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2024_-_31_07_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2024_-_31_07_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "4a83988f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2025_-_28_02_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2025_-_28_02_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "539a39fb-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2025_-_30_06_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2025_-_30_06_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "545cb3b1-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2024_-_30_11_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2024_-_30_11_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "5693682c-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2023_-_31_12_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2023_-_31_12_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "597d2871-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2025_-_31_12_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2025_-_31_12_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "59e9106f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2024_-_29_02_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2024_-_29_02_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "6646c9aa-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2023_-_30_04_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2023_-_30_04_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "7259282c-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2026_-_31_07_2026.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2026_-_31_07_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "7448b37f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2026_-_30_09_2026.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2026_-_30_09_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "77119e4b-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2024_-_31_08_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2024_-_31_08_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "777db211-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2026_-_28_02_2026.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2026_-_28_02_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "87db61b9-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2025_-_31_07_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2025_-_31_07_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "8cef66e1-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2025_-_31_05_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2025_-_31_05_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "8f648e88-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2025_-_30_04_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2025_-_30_04_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "94287077-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2023_-_31_08_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2023_-_31_08_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "96b4f393-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2026_-_31_01_2026.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2026_-_31_01_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "996b26e9-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2024_-_31_12_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2024_-_31_12_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "a211253d-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2024_-_30_09_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2024_-_30_09_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "a46ef8b2-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2025_-_31_03_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2025_-_31_03_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "b0d39312-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2024_-_30_04_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2024_-_30_04_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "c09234ff-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2023_-_30_11_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2023_-_30_11_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "c4c4b553-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2024_-_30_06_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2024_-_30_06_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "cc0b1064-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2024_-_31_05_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2024_-_31_05_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "cf284875-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2024_-_31_01_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2024_-_31_01_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "d6ec85ab-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2025_-_30_11_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2025_-_30_11_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "dc0f777f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2025_-_31_08_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2025_-_31_08_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "dde427a0-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2026_-_30_04_2026.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2026_-_30_04_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "e644a699-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2023_-_31_01_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2023_-_31_01_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "eb605da6-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2023_-_31_07_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2023_-_31_07_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "eef75992-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2025_-_31_01_2025.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2025_-_31_01_2025.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "f4602be0-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2023_-_31_10_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2023_-_31_10_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "f47edac1-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2023_-_31_05_2023.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2023_-_31_05_2023.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         },
         {
-          "file": "fa6a7dff-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2024_-_31_03_2024.csv",
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2024_-_31_03_2024.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
         }
       ],
@@ -315,7 +315,7 @@
       "depth_m": 0.12,
       "sensor_model": "TEROS 21",
       "logger_port": 4,
-      "label": "Potenziale matriciale del terreno 12 cm – Vaglio – Stazione S3",
+      "label": "Potenziale matriciale del terreno 12 cm – Vaglio – Nodo S3",
       "unit": "kPa",
       "aggregation": "mean",
       "step_min": 5.0,
@@ -337,13 +337,13 @@
       ],
       "sources": [
         {
-          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+          "file": "Vaglio_Meter_S3_2023.xlsx"
         },
         {
-          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+          "file": "Vaglio_Meter_S3_2024.xlsx"
         },
         {
-          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+          "file": "Vaglio_Meter_S3_2025.xlsx"
         }
       ],
       "data": {
@@ -373,7 +373,7 @@
       "depth_m": 0.4,
       "sensor_model": "TEROS 21",
       "logger_port": 5,
-      "label": "Potenziale matriciale del terreno 40 cm – Vaglio – Stazione S3",
+      "label": "Potenziale matriciale del terreno 40 cm – Vaglio – Nodo S3",
       "unit": "kPa",
       "aggregation": "mean",
       "step_min": 5.0,
@@ -395,13 +395,13 @@
       ],
       "sources": [
         {
-          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+          "file": "Vaglio_Meter_S3_2023.xlsx"
         },
         {
-          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+          "file": "Vaglio_Meter_S3_2024.xlsx"
         },
         {
-          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+          "file": "Vaglio_Meter_S3_2025.xlsx"
         }
       ],
       "data": {
@@ -431,7 +431,7 @@
       "depth_m": 0.6,
       "sensor_model": "TEROS 21",
       "logger_port": 6,
-      "label": "Potenziale matriciale del terreno 60 cm – Vaglio – Stazione S3",
+      "label": "Potenziale matriciale del terreno 60 cm – Vaglio – Nodo S3",
       "unit": "kPa",
       "aggregation": "mean",
       "step_min": 5.0,
@@ -453,13 +453,13 @@
       ],
       "sources": [
         {
-          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+          "file": "Vaglio_Meter_S3_2023.xlsx"
         },
         {
-          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+          "file": "Vaglio_Meter_S3_2024.xlsx"
         },
         {
-          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+          "file": "Vaglio_Meter_S3_2025.xlsx"
         }
       ],
       "data": {
@@ -489,7 +489,7 @@
       "depth_m": 0.12,
       "sensor_model": "TEROS 21",
       "logger_port": 4,
-      "label": "Temperatura del terreno 12 cm – Vaglio – Stazione S3",
+      "label": "Temperatura del terreno 12 cm – Vaglio – Nodo S3",
       "unit": "°C",
       "aggregation": "mean",
       "step_min": 5.0,
@@ -511,13 +511,13 @@
       ],
       "sources": [
         {
-          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+          "file": "Vaglio_Meter_S3_2023.xlsx"
         },
         {
-          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+          "file": "Vaglio_Meter_S3_2024.xlsx"
         },
         {
-          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+          "file": "Vaglio_Meter_S3_2025.xlsx"
         }
       ],
       "data": {
@@ -547,7 +547,7 @@
       "depth_m": 0.4,
       "sensor_model": "TEROS 21",
       "logger_port": 5,
-      "label": "Temperatura del terreno 40 cm – Vaglio – Stazione S3",
+      "label": "Temperatura del terreno 40 cm – Vaglio – Nodo S3",
       "unit": "°C",
       "aggregation": "mean",
       "step_min": 5.0,
@@ -569,13 +569,13 @@
       ],
       "sources": [
         {
-          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+          "file": "Vaglio_Meter_S3_2023.xlsx"
         },
         {
-          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+          "file": "Vaglio_Meter_S3_2024.xlsx"
         },
         {
-          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+          "file": "Vaglio_Meter_S3_2025.xlsx"
         }
       ],
       "data": {
@@ -605,7 +605,7 @@
       "depth_m": 0.6,
       "sensor_model": "TEROS 21",
       "logger_port": 6,
-      "label": "Temperatura del terreno 60 cm – Vaglio – Stazione S3",
+      "label": "Temperatura del terreno 60 cm – Vaglio – Nodo S3",
       "unit": "°C",
       "aggregation": "mean",
       "step_min": 5.0,
@@ -627,13 +627,13 @@
       ],
       "sources": [
         {
-          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+          "file": "Vaglio_Meter_S3_2023.xlsx"
         },
         {
-          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+          "file": "Vaglio_Meter_S3_2024.xlsx"
         },
         {
-          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+          "file": "Vaglio_Meter_S3_2025.xlsx"
         }
       ],
       "data": {
@@ -663,7 +663,7 @@
       "depth_m": 0.12,
       "sensor_model": "TEROS 10",
       "logger_port": 1,
-      "label": "Contenuto d'acqua del terreno 12 cm – Vaglio – Stazione S3",
+      "label": "Contenuto d'acqua del terreno 12 cm – Vaglio – Nodo S3",
       "unit": "m3/m3",
       "aggregation": "mean",
       "step_min": 5.0,
@@ -685,13 +685,13 @@
       ],
       "sources": [
         {
-          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+          "file": "Vaglio_Meter_S3_2023.xlsx"
         },
         {
-          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+          "file": "Vaglio_Meter_S3_2024.xlsx"
         },
         {
-          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+          "file": "Vaglio_Meter_S3_2025.xlsx"
         }
       ],
       "data": {
@@ -721,7 +721,7 @@
       "depth_m": 0.4,
       "sensor_model": "TEROS 10",
       "logger_port": 2,
-      "label": "Contenuto d'acqua del terreno 40 cm – Vaglio – Stazione S3",
+      "label": "Contenuto d'acqua del terreno 40 cm – Vaglio – Nodo S3",
       "unit": "m3/m3",
       "aggregation": "mean",
       "step_min": 5.0,
@@ -743,13 +743,13 @@
       ],
       "sources": [
         {
-          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+          "file": "Vaglio_Meter_S3_2023.xlsx"
         },
         {
-          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+          "file": "Vaglio_Meter_S3_2024.xlsx"
         },
         {
-          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+          "file": "Vaglio_Meter_S3_2025.xlsx"
         }
       ],
       "data": {
@@ -779,7 +779,7 @@
       "depth_m": 0.6,
       "sensor_model": "TEROS 10",
       "logger_port": 3,
-      "label": "Contenuto d'acqua del terreno 60 cm – Vaglio – Stazione S3",
+      "label": "Contenuto d'acqua del terreno 60 cm – Vaglio – Nodo S3",
       "unit": "m3/m3",
       "aggregation": "mean",
       "step_min": 5.0,
@@ -801,13 +801,13 @@
       ],
       "sources": [
         {
-          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+          "file": "Vaglio_Meter_S3_2023.xlsx"
         },
         {
-          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+          "file": "Vaglio_Meter_S3_2024.xlsx"
         },
         {
-          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+          "file": "Vaglio_Meter_S3_2025.xlsx"
         }
       ],
       "data": {
