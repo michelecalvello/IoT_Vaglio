@@ -11,3 +11,6 @@ VAG_S3_TSOIL_060,timestamp duplicati rimossi,,15,,
 VAG_S3_VWC_012,timestamp duplicati rimossi,,15,,
 VAG_S3_VWC_040,timestamp duplicati rimossi,,15,,
 VAG_S3_VWC_060,timestamp duplicati rimossi,,15,,
+VAG_CF_RAIN,picco isolato > 20 mm/h,1.0,1,2015-07-24 16:06,2015-07-24 16:06
+VAG_CF_RAIN,picco isolato > 20 mm/h,1.0,1,2016-08-07 02:01,2016-08-07 02:01
+VAG_CF_RAIN,picco isolato > 20 mm/h,1.0,1,2016-08-07 02:17,2016-08-07 02:17

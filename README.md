@@ -4,7 +4,8 @@
 
 Dati di monitoraggio a Vaglio di Basilicata (PZ):
 - **pioggia** dal pluviometro della rete regionale (Centro Funzionale Decentrato Basilicata – Regione Basilicata),
-  passo 1 minuto, dal 1 gennaio 2023 al 30 settembre 2026;
+  passo 1 minuto, dal 1 gennaio 2023 al 30 settembre 2026, più i dati storici 2015–2016
+  (dal 6 luglio 2015; novembre 2015 assente);
 - **contenuto d'acqua volumetrico**, **potenziale matriciale** e **temperatura del terreno** dal nodo S3
   (datalogger METER z6-18720, sensori TEROS 10 e TEROS 21), profondità 12, 40 e 60 cm, passo 5 minuti,
   dall'8 agosto 2023 al 31 dicembre 2025;
@@ -38,10 +39,11 @@ export INPUT_DIR=<cartella con i file sorgente>   OUT_DIR=.
 python pipeline/build_vaglio.py       # data/ + catalog.json + series.csv + data/qc_log.csv
 python pipeline/ingest_gee.py         # prodotti a griglia da Google Earth Engine (ERA5-Land, SMAP L4)
 python pipeline/derive_cumulative.py  # pioggia cumulata dal 1 gennaio dei prodotti a griglia
+python pipeline/add_rain_history.py   # anni storici del pluviometro (2015–2016), con INPUT_DIR = cartella dei loro CSV
 ```
 
 `build_vaglio.py` rigenera `catalog.json`, `series.csv` e `data/qc_log.csv` da zero: dopo ogni sua esecuzione vanno rieseguiti
-anche `ingest_gee.py` (con i CSV GEE in `INPUT_DIR`) e `derive_cumulative.py`. I file dei pixel in `data/raw` e `data/agg` non vengono cancellati.
+anche `ingest_gee.py` (con i CSV GEE in `INPUT_DIR`), `derive_cumulative.py` e `add_rain_history.py` (con i CSV storici del pluviometro). I file dei pixel in `data/raw` e `data/agg` non vengono cancellati.
 
 I file sorgente sono:
 - CSV `… Intensità Pioggia … .csv` (mm/h, passo 1 minuto, ora locale CET/CEST), uno per mese;
@@ -99,11 +101,11 @@ data/qc_log.csv            elenco dei valori segnalati e regola applicata
 
 Calcolate dallo script a passo 1 minuto, come il dato originale; ogni dato di pioggia è riferito all'intervallo che termina al suo timestamp.
 
-- **`VAG_CF_RAIN24H`** – pioggia caduta nelle 24 ore che terminano al timestamp (somma mobile di 1440 minuti). Prima finestra completa: 2023-01-01 23:59.
+- **`VAG_CF_RAIN24H`** – pioggia caduta nelle 24 ore che terminano al timestamp (somma mobile di 1440 minuti). Prima finestra completa: 2023-01-01 23:59 (per il 2015–2016 le finestre incomplete hanno flag 1).
   Nei minuti senza dato di pioggia la serie non ha valore. A mezzanotte coincide con il totale giornaliero del giorno appena concluso;
   il massimo giornaliero degli aggregati è la massima pioggia in 24 ore (73,0 mm il 15 aprile 2026).
 - **`VAG_CF_RAINCUM`** – pioggia cumulata dal 1 gennaio ore 00:00, azzerata ogni anno. Il dato delle 00:00 del 1 gennaio chiude l'anno precedente
-  (totale annuo), la cumulata riparte da 0 con il dato successivo. Totali: 2023 746,7 mm; 2024 616,6 mm; 2025 584,6 mm; 2026 (al 30 settembre) 660,8 mm.
+  (totale annuo), la cumulata riparte da 0 con il dato successivo. Totali: 2023 746,7 mm; 2024 616,6 mm; 2025 584,6 mm; 2026 (al 30 settembre) 660,8 mm. Dati storici (incompleti, flag 1): 2015 249,3 mm (solo luglio–dicembre, senza novembre); 2016 949,2 mm.
 - **Dati mancanti e flag**: i minuti senza dato valgono 0 nella somma, quindi la cumulata è sottostimata. `flag` = 1 (tratteggio nel portale) quando
   nella finestra di 24 ore mancano più di 60 minuti di dato (3 episodi: 18 giugno 2025, 14 ottobre 2025, 3 febbraio 2026), oppure quando nell'anno
   mancano più di 24 ore (lacune > 60 minuti): finora mai. Le soglie sono in `pipeline/qc_rules.json` (blocco `cumulative`).

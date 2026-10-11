@@ -1,6 +1,6 @@
 {
-  "catalog_version": "0.3",
-  "generated": "2026-10-11T10:42:50+01:00",
+  "catalog_version": "0.4",
+  "generated": "2026-10-11T11:13:11+01:00",
   "conventions": {
     "time_reference": "UTC+1 fisso (ora solare italiana, senza ora legale) per tutte le misure. Timestamp in ISO 8601 con offset '+01:00'. Il pluviometro è convertito da ora locale (CET/CEST); i file METER usano la colonna 'Time UTC+1'.",
     "series_id": "<STAZIONE>_<GRANDEZZA>[_<PROFONDITÀ cm, 3 cifre>]",
@@ -770,18 +770,122 @@
       "unit": "mm",
       "aggregation": "sum",
       "step_min": 1.0,
-      "start": "2023-01-01T00:00+01:00",
+      "start": "2015-07-06T15:07+01:00",
       "end": "2026-09-30T22:59+01:00",
-      "n_values": 1970369,
+      "n_values": 2707478,
       "min": 0.0,
-      "max": 2.7183333333333333,
+      "max": 2.7183,
       "status": "active",
-      "gaps_over_24h": [],
+      "gaps_over_24h": [
+        {
+          "from": "2015-10-31T22:59+01:00",
+          "to": "2015-11-30T23:00+01:00",
+          "hours": 720.0
+        },
+        {
+          "from": "2016-12-31T22:59+01:00",
+          "to": "2023-01-01T00:00+01:00",
+          "hours": 52585.0
+        }
+      ],
       "qc_notes": [
         "Lacune di minuti senza dato: nelle aggregazioni sono indicate in n e coverage, non sono zero.",
-        "Picchi isolati segnalati con flag 1 (inclusi nei totali)."
+        "Picchi isolati segnalati con flag 1 (inclusi nei totali).",
+        "Dati storici 2015–2016 aggiunti con pipeline/add_rain_history.py: nel 2015 i dati partono dal 6 luglio 15:07 (UTC+1) (gennaio–giugno senza dato) e novembre 2015 è assente (il file sorgente contiene solo valori negativi datati 11/10/2026, scartati); fra il 2016 e il 2023 non ci sono dati."
       ],
       "sources": [
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2016_-_31_01_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2015_-_31_07_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2016_-_30_11_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2016_-_31_12_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2016_-_31_08_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2016_-_31_03_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2015_-_28_02_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2016_-_31_05_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2016_-_30_04_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2016_-_30_09_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2015_-_31_03_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2016_-_31_07_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2015_-_30_11_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2015_-_30_09_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2015_-_30_04_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2015_-_31_05_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2015_-_31_08_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2016_-_29_02_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2016_-_31_10_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2015_-_31_10_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2015_-_31_12_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2015_-_31_01_2015.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2016_-_30_06_2016.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
         {
           "file": "Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2026_-_31_08_2026.csv",
           "column": "Valore (mm/h, convertito in mm per minuto)"
@@ -967,6 +1071,8 @@
         "format": "csv: time,value,flag",
         "raw": "data/raw/VAG_CF_RAIN/{year}.csv",
         "years": [
+          2015,
+          2016,
           2023,
           2024,
           2025,
@@ -977,9 +1083,9 @@
         "agg_1d": "data/agg/VAG_CF_RAIN_1d.csv"
       },
       "qc_summary": {
-        "n_total": 1970369,
-        "n_valid": 1970367,
-        "n_suspect": 2,
+        "n_total": 2707478,
+        "n_valid": 2707473,
+        "n_suspect": 5,
         "n_bad": 0,
         "duplicates_removed": 0
       }
@@ -996,16 +1102,27 @@
       "unit": "mm",
       "aggregation": "last",
       "step_min": 1.0,
-      "start": "2023-01-01T23:59+01:00",
+      "start": "2015-07-06T15:07+01:00",
       "end": "2026-09-30T22:59+01:00",
-      "n_values": 1968930,
+      "n_values": 2706039,
       "min": 0.0,
-      "max": 73.04,
+      "max": 78.06,
       "status": "active",
-      "gaps_over_24h": [],
+      "gaps_over_24h": [
+        {
+          "from": "2015-10-31T22:59+01:00",
+          "to": "2015-11-30T23:00+01:00",
+          "hours": 720.0
+        },
+        {
+          "from": "2016-12-31T22:59+01:00",
+          "to": "2023-01-01T23:59+01:00",
+          "hours": 52609.0
+        }
+      ],
       "qc_notes": [
         "Serie derivata da VAG_CF_RAIN: somma mobile dei 1440 minuti che terminano al timestamp (ogni dato di pioggia è riferito all'intervallo che termina al suo timestamp), calcolata a passo 1 minuto sui dati con flag < 2.",
-        "Prima finestra completa: 2023-01-01 23:59 (UTC+1). Nei minuti senza dato di pioggia la serie non ha valore.",
+        "Dati 2015–2016: dalla prima misura (2015-07-06 15:07 UTC+1) le finestre con più di 60 minuti mancanti hanno flag 1. Dati dal 2023: prima finestra completa 2023-01-01 23:59. Nei minuti senza dato di pioggia la serie non ha valore.",
         "flag 1 (tratteggio nel portale): più di 60 minuti mancanti nella finestra di 24 ore: il valore è sottostimato.",
         "Aggregati: value = valore a fine intervallo, min e max = estremi nell'intervallo (il massimo giornaliero è la massima pioggia in 24 ore)."
       ],
@@ -1015,6 +1132,8 @@
         "format": "csv: time,value,flag",
         "raw": "data/raw/VAG_CF_RAIN24H/{year}.csv",
         "years": [
+          2015,
+          2016,
           2023,
           2024,
           2025,
@@ -1025,9 +1144,9 @@
         "agg_1d": "data/agg/VAG_CF_RAIN24H_1d.csv"
       },
       "qc_summary": {
-        "n_total": 1968930,
-        "n_valid": 1964793,
-        "n_suspect": 4137,
+        "n_total": 2706039,
+        "n_valid": 2692955,
+        "n_suspect": 13084,
         "n_bad": 0,
         "duplicates_removed": 0
       }
@@ -1044,21 +1163,50 @@
       "unit": "mm",
       "aggregation": "last",
       "step_min": 1.0,
-      "start": "2023-01-01T00:01+01:00",
+      "start": "2015-07-06T15:07+01:00",
       "end": "2026-09-30T22:59+01:00",
-      "n_values": 1970368,
+      "n_values": 2707477,
       "min": 0.0,
-      "max": 746.72,
+      "max": 949.21,
       "status": "active",
-      "gaps_over_24h": [],
+      "gaps_over_24h": [
+        {
+          "from": "2015-10-31T22:59+01:00",
+          "to": "2015-11-30T23:00+01:00",
+          "hours": 720.0
+        },
+        {
+          "from": "2016-12-31T22:59+01:00",
+          "to": "2023-01-01T00:01+01:00",
+          "hours": 52585.0
+        }
+      ],
       "qc_notes": [
         "Serie derivata da VAG_CF_RAIN: pioggia cumulata dal 1 gennaio ore 00:00 (si azzera ogni anno), calcolata sui dati con flag < 2. Il dato delle 00:00 del 1 gennaio chiude l'anno precedente.",
-        "Totali: 2023: 746.7 mm; 2024: 616.6 mm; 2025: 584.6 mm; 2026: 660.8 mm. Il 2026 arriva al 30 settembre.",
+        "Totali: 2015: 249.3 mm (incompleto); 2016: 949.2 mm (incompleto); 2023: 746.7 mm; 2024: 616.6 mm; 2025: 584.6 mm; 2026: 660.8 mm. Il 2026 arriva al 30 settembre.",
         "flag 1 (tratteggio nel portale): più di 24 ore di dati mancanti nell'anno (lacune > 60 minuti): cumulata sottostimata."
       ],
       "sources": [],
       "derived_from": "VAG_CF_RAIN",
       "cumulative_years": [
+        {
+          "year": 2015,
+          "total_mm": 249.3,
+          "n": 213417,
+          "first": "2015-07-06 15:07",
+          "last": "2015-12-31 23:59",
+          "missing_hours": 5200.1,
+          "complete": false
+        },
+        {
+          "year": 2016,
+          "total_mm": 949.2,
+          "n": 523692,
+          "first": "2016-01-01 11:54",
+          "last": "2016-12-31 22:59",
+          "missing_hours": 42.9,
+          "complete": false
+        },
         {
           "year": 2023,
           "total_mm": 746.7,
@@ -1100,6 +1248,8 @@
         "format": "csv: time,value,flag",
         "raw": "data/raw/VAG_CF_RAINCUM/{year}.csv",
         "years": [
+          2015,
+          2016,
           2023,
           2024,
           2025,
@@ -1110,9 +1260,9 @@
         "agg_1d": "data/agg/VAG_CF_RAINCUM_1d.csv"
       },
       "qc_summary": {
-        "n_total": 1970368,
-        "n_valid": 1970368,
-        "n_suspect": 0,
+        "n_total": 2707477,
+        "n_valid": 2219433,
+        "n_suspect": 488044,
         "n_bad": 0,
         "duplicates_removed": 0
       }
