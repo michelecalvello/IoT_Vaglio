@@ -1,0 +1,9 @@
+series_id,rule,flag,n,first,last
+VAG_CF_RAIN,picco isolato > 20 mm/h,1.0,1,2023-05-02 11:46,2023-05-02 11:46
+VAG_CF_RAIN,picco isolato > 20 mm/h,1.0,1,2026-07-02 12:10,2026-07-02 12:10
+VAG_S3_PSI_012,timestamp duplicati rimossi,,15,,
+VAG_S3_PSI_040,timestamp duplicati rimossi,,15,,
+VAG_S3_PSI_060,timestamp duplicati rimossi,,15,,
+VAG_S3_VWC_012,timestamp duplicati rimossi,,15,,
+VAG_S3_VWC_040,timestamp duplicati rimossi,,15,,
+VAG_S3_VWC_060,timestamp duplicati rimossi,,15,,

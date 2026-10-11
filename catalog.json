@@ -1,0 +1,680 @@
+{
+  "catalog_version": "0.1",
+  "generated": "2026-10-11T09:39:35+01:00",
+  "conventions": {
+    "time_reference": "UTC+1 fisso (ora solare italiana, senza ora legale) per tutte le misure. Timestamp in ISO 8601 con offset '+01:00'. Il pluviometro è convertito da ora locale (CET/CEST); i file METER usano la colonna 'Time UTC+1'.",
+    "series_id": "<STAZIONE>_<GRANDEZZA>[_<PROFONDITÀ cm, 3 cifre>]",
+    "depth_m": "Profondità nel terreno sotto il piano campagna, positiva verso il basso, in metri.",
+    "coordinates": "WGS84 (EPSG:4326), gradi decimali.",
+    "data_format": "File CSV con intestazione. Dati originali: time,value,flag (un file per serie e per anno). Aggregati: time,value,[min],max,n,coverage. time = 'YYYY-MM-DD HH:MM' in UTC+1. flag: 0 valido, 1 sospetto, 2 errato. Aggregati calcolati sui soli flag < 2.",
+    "aggregation_labels": "Grandezze istantanee: etichetta = inizio intervallo. Pioggia: ogni dato è riferito all'intervallo che termina al timestamp; l'etichetta indica l'inizio del periodo di cumulo."
+  },
+  "variables": {
+    "rain": {
+      "label_it": "Pioggia",
+      "label_en": "Rainfall",
+      "unit": "mm",
+      "aggregation": "sum",
+      "plot": "bar",
+      "notes": "Altezza di pioggia caduta nell'intervallo che termina al timestamp."
+    },
+    "vwc": {
+      "label_it": "Contenuto d'acqua del terreno",
+      "label_en": "Soil water content (volumetric)",
+      "unit": "m3/m3",
+      "aggregation": "mean",
+      "plot": "line"
+    },
+    "psi": {
+      "label_it": "Potenziale matriciale del terreno",
+      "label_en": "Soil matric potential",
+      "unit": "kPa",
+      "aggregation": "mean",
+      "plot": "line",
+      "notes": "Valori negativi = suzione. TEROS 21: accuratezza dichiarata tra -9 e -100 kPa; valori > -9 kPa (prossimi alla saturazione) sono indicativi."
+    }
+  },
+  "stations": [
+    {
+      "station_id": "VAG_CF",
+      "name": "Vaglio di Basilicata – pluviometro (rete CFD)",
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "lat": 40.669444,
+      "lon": 15.915278,
+      "elevation_m": 991,
+      "owner": "Centro Funzionale Decentrato Basilicata – Regione Basilicata",
+      "notes": "Pluviometro della rete regionale. Coordinate: 40°40'10\" N, 15°54'55\" E; altitudine 991 m s.l.m."
+    },
+    {
+      "station_id": "VAG_S3",
+      "name": "Vaglio – Stazione S3 (terreno)",
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "lat": null,
+      "lon": null,
+      "elevation_m": null,
+      "owner": "da definire",
+      "notes": "Nodo METER per il terreno: TEROS 10 (contenuto d'acqua) e TEROS 21 (potenziale matriciale), profondità 12, 40 e 60 cm. Coordinate da definire."
+    }
+  ],
+  "instruments": [
+    {
+      "instrument_id": "VAG_CF_RAIN",
+      "station_id": "VAG_CF",
+      "manufacturer": "Centro Funzionale Decentrato Regione Basilicata",
+      "type": "Pluviometro"
+    },
+    {
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "manufacturer": "METER Group",
+      "type": "Datalogger con sensori TEROS 10 (contenuto d'acqua) e TEROS 21 (potenziale matriciale nel terreno)"
+    }
+  ],
+  "series": [
+    {
+      "series_id": "VAG_CF_RAIN",
+      "instrument_id": "VAG_CF_RAIN",
+      "station_id": "VAG_CF",
+      "variable": "rain",
+      "depth_m": null,
+      "sensor_model": null,
+      "logger_port": null,
+      "label": "Pioggia – Vaglio di Basilicata (pluviometro CFD)",
+      "unit": "mm",
+      "aggregation": "sum",
+      "step_min": 1.0,
+      "start": "2023-01-01T00:00+01:00",
+      "end": "2026-09-30T22:59+01:00",
+      "n_values": 1970369,
+      "min": 0.0,
+      "max": 2.7183333333333333,
+      "status": "active",
+      "gaps_over_24h": [],
+      "qc_notes": [
+        "Lacune di minuti senza dato: nelle aggregazioni sono indicate in n e coverage, non sono zero.",
+        "Picchi isolati segnalati con flag 1 (inclusi nei totali)."
+      ],
+      "sources": [
+        {
+          "file": "0080266d-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2026_-_31_08_2026.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "03dcd15e-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2026_-_31_05_2026.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "103ae0d8-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2026_-_30_06_2026.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "15dd72dc-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2026_-_31_03_2026.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "2bd0cae6-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2023_-_28_02_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "2e124e87-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2024_-_31_10_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "2f910790-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2023_-_31_03_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "39ab5898-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2023_-_30_06_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "3e8829dd-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2025_-_30_09_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "3f3cb8c5-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2025_-_31_10_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "494e4b9c-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2023_-_30_09_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "49a0687f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2024_-_31_07_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "4a83988f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2025_-_28_02_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "539a39fb-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2025_-_30_06_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "545cb3b1-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2024_-_30_11_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "5693682c-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2023_-_31_12_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "597d2871-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2025_-_31_12_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "59e9106f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2024_-_29_02_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "6646c9aa-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2023_-_30_04_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "7259282c-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2026_-_31_07_2026.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "7448b37f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2026_-_30_09_2026.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "77119e4b-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2024_-_31_08_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "777db211-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_02_2026_-_28_02_2026.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "87db61b9-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2025_-_31_07_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "8cef66e1-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2025_-_31_05_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "8f648e88-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2025_-_30_04_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "94287077-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2023_-_31_08_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "96b4f393-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2026_-_31_01_2026.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "996b26e9-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_12_2024_-_31_12_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "a211253d-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_09_2024_-_30_09_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "a46ef8b2-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2025_-_31_03_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "b0d39312-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2024_-_30_04_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "c09234ff-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2023_-_30_11_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "c4c4b553-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_06_2024_-_30_06_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "cc0b1064-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2024_-_31_05_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "cf284875-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2024_-_31_01_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "d6ec85ab-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_11_2025_-_30_11_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "dc0f777f-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_08_2025_-_31_08_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "dde427a0-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_04_2026_-_30_04_2026.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "e644a699-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2023_-_31_01_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "eb605da6-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_07_2023_-_31_07_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "eef75992-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_01_2025_-_31_01_2025.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "f4602be0-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_10_2023_-_31_10_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "f47edac1-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_05_2023_-_31_05_2023.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        },
+        {
+          "file": "fa6a7dff-Vaglio_di_Basilicata_-_Intensit__Pioggia_-__-_01_03_2024_-_31_03_2024.csv",
+          "column": "Valore (mm/h, convertito in mm per minuto)"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_CF_RAIN/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "agg_10min": "data/agg/VAG_CF_RAIN_10min.csv",
+        "agg_1h": "data/agg/VAG_CF_RAIN_1h.csv",
+        "agg_1d": "data/agg/VAG_CF_RAIN_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 1970369,
+        "n_valid": 1970367,
+        "n_suspect": 2,
+        "n_bad": 0,
+        "duplicates_removed": 0
+      }
+    },
+    {
+      "series_id": "VAG_S3_PSI_012",
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "variable": "psi",
+      "depth_m": 0.12,
+      "sensor_model": "TEROS 21",
+      "logger_port": 4,
+      "label": "Potenziale matriciale del terreno 12 cm – Vaglio – Stazione S3",
+      "unit": "kPa",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2023-08-08T18:15+01:00",
+      "end": "2025-12-31T23:55+01:00",
+      "n_values": 252042,
+      "min": -1755.9,
+      "max": -0.1,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2025-12-17T16:20+01:00",
+          "to": "2025-12-18T17:25+01:00",
+          "hours": 25.1
+        }
+      ],
+      "qc_notes": [
+        "15 timestamp duplicati nei file sorgente: mantenuto il primo valore."
+      ],
+      "sources": [
+        {
+          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+        },
+        {
+          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+        },
+        {
+          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_S3_PSI_012/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_S3_PSI_012_1h.csv",
+        "agg_1d": "data/agg/VAG_S3_PSI_012_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 252042,
+        "n_valid": 252042,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 15
+      }
+    },
+    {
+      "series_id": "VAG_S3_PSI_040",
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "variable": "psi",
+      "depth_m": 0.4,
+      "sensor_model": "TEROS 21",
+      "logger_port": 5,
+      "label": "Potenziale matriciale del terreno 40 cm – Vaglio – Stazione S3",
+      "unit": "kPa",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2023-08-08T18:15+01:00",
+      "end": "2025-12-31T23:55+01:00",
+      "n_values": 252042,
+      "min": -1986.5,
+      "max": -0.1,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2025-12-17T16:20+01:00",
+          "to": "2025-12-18T17:25+01:00",
+          "hours": 25.1
+        }
+      ],
+      "qc_notes": [
+        "15 timestamp duplicati nei file sorgente: mantenuto il primo valore."
+      ],
+      "sources": [
+        {
+          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+        },
+        {
+          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+        },
+        {
+          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_S3_PSI_040/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_S3_PSI_040_1h.csv",
+        "agg_1d": "data/agg/VAG_S3_PSI_040_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 252042,
+        "n_valid": 252042,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 15
+      }
+    },
+    {
+      "series_id": "VAG_S3_PSI_060",
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "variable": "psi",
+      "depth_m": 0.6,
+      "sensor_model": "TEROS 21",
+      "logger_port": 6,
+      "label": "Potenziale matriciale del terreno 60 cm – Vaglio – Stazione S3",
+      "unit": "kPa",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2023-08-08T18:15+01:00",
+      "end": "2025-12-31T23:55+01:00",
+      "n_values": 252042,
+      "min": -1174.3,
+      "max": -0.1,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2025-12-17T16:20+01:00",
+          "to": "2025-12-18T17:25+01:00",
+          "hours": 25.1
+        }
+      ],
+      "qc_notes": [
+        "15 timestamp duplicati nei file sorgente: mantenuto il primo valore."
+      ],
+      "sources": [
+        {
+          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+        },
+        {
+          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+        },
+        {
+          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_S3_PSI_060/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_S3_PSI_060_1h.csv",
+        "agg_1d": "data/agg/VAG_S3_PSI_060_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 252042,
+        "n_valid": 252042,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 15
+      }
+    },
+    {
+      "series_id": "VAG_S3_VWC_012",
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "variable": "vwc",
+      "depth_m": 0.12,
+      "sensor_model": "TEROS 10",
+      "logger_port": 1,
+      "label": "Contenuto d'acqua del terreno 12 cm – Vaglio – Stazione S3",
+      "unit": "m3/m3",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2023-08-08T18:15+01:00",
+      "end": "2025-12-31T23:55+01:00",
+      "n_values": 252042,
+      "min": 0.223,
+      "max": 0.435,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2025-12-17T16:20+01:00",
+          "to": "2025-12-18T17:25+01:00",
+          "hours": 25.1
+        }
+      ],
+      "qc_notes": [
+        "15 timestamp duplicati nei file sorgente: mantenuto il primo valore."
+      ],
+      "sources": [
+        {
+          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+        },
+        {
+          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+        },
+        {
+          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_S3_VWC_012/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_S3_VWC_012_1h.csv",
+        "agg_1d": "data/agg/VAG_S3_VWC_012_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 252042,
+        "n_valid": 252042,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 15
+      }
+    },
+    {
+      "series_id": "VAG_S3_VWC_040",
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "variable": "vwc",
+      "depth_m": 0.4,
+      "sensor_model": "TEROS 10",
+      "logger_port": 2,
+      "label": "Contenuto d'acqua del terreno 40 cm – Vaglio – Stazione S3",
+      "unit": "m3/m3",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2023-08-08T18:15+01:00",
+      "end": "2025-12-31T23:55+01:00",
+      "n_values": 252042,
+      "min": 0.21,
+      "max": 0.376,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2025-12-17T16:20+01:00",
+          "to": "2025-12-18T17:25+01:00",
+          "hours": 25.1
+        }
+      ],
+      "qc_notes": [
+        "15 timestamp duplicati nei file sorgente: mantenuto il primo valore."
+      ],
+      "sources": [
+        {
+          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+        },
+        {
+          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+        },
+        {
+          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_S3_VWC_040/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_S3_VWC_040_1h.csv",
+        "agg_1d": "data/agg/VAG_S3_VWC_040_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 252042,
+        "n_valid": 252042,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 15
+      }
+    },
+    {
+      "series_id": "VAG_S3_VWC_060",
+      "instrument_id": "VAG_S3_METER",
+      "station_id": "VAG_S3",
+      "variable": "vwc",
+      "depth_m": 0.6,
+      "sensor_model": "TEROS 10",
+      "logger_port": 3,
+      "label": "Contenuto d'acqua del terreno 60 cm – Vaglio – Stazione S3",
+      "unit": "m3/m3",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2023-08-08T18:15+01:00",
+      "end": "2025-12-31T23:55+01:00",
+      "n_values": 252042,
+      "min": 0.242,
+      "max": 0.411,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2025-12-17T16:20+01:00",
+          "to": "2025-12-18T17:25+01:00",
+          "hours": 25.1
+        }
+      ],
+      "qc_notes": [
+        "15 timestamp duplicati nei file sorgente: mantenuto il primo valore."
+      ],
+      "sources": [
+        {
+          "file": "78de54a5-Vaglio_Meter_S3_2025.xlsx"
+        },
+        {
+          "file": "cf974675-Vaglio_Meter_S3_2023.xlsx"
+        },
+        {
+          "file": "f25a7c46-Vaglio_Meter_S3_2024.xlsx"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_S3_VWC_060/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_S3_VWC_060_1h.csv",
+        "agg_1d": "data/agg/VAG_S3_VWC_060_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 252042,
+        "n_valid": 252042,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 15
+      }
+    }
+  ],
+  "qc_rules": {
+    "flags": {
+      "0": "valido",
+      "1": "sospetto",
+      "2": "errato"
+    },
+    "range_by_variable": {
+      "_doc": "Valori fuori da [min, max] -> flag 2. Pioggia: mm per minuto.",
+      "vwc": {
+        "min": 0.0,
+        "max": 0.65
+      },
+      "psi": {
+        "min": -100000,
+        "max": 0.0
+      },
+      "rain": {
+        "min": 0.0,
+        "max": 50.0
+      }
+    },
+    "spike_by_series": {
+      "_doc": "Picco isolato sui mm/h del pluviometro: scarto da entrambi i valori adiacenti > threshold, con i due adiacenti entro neighbor_tolerance tra loro -> flag 1. Le piene reali (salita/discesa continua) non vengono segnalate.",
+      "VAG_CF_RAIN": {
+        "threshold": 20.0,
+        "neighbor_tolerance": 5.0
+      }
+    }
+  }
+}
