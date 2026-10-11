@@ -1,13 +1,15 @@
 {
-  "catalog_version": "0.1",
-  "generated": "2026-10-11T10:25:43+01:00",
+  "catalog_version": "0.3",
+  "generated": "2026-10-11T10:42:50+01:00",
   "conventions": {
     "time_reference": "UTC+1 fisso (ora solare italiana, senza ora legale) per tutte le misure. Timestamp in ISO 8601 con offset '+01:00'. Il pluviometro è convertito da ora locale (CET/CEST); i file METER usano la colonna 'Time UTC+1'.",
     "series_id": "<STAZIONE>_<GRANDEZZA>[_<PROFONDITÀ cm, 3 cifre>]",
     "depth_m": "Profondità nel terreno sotto il piano campagna, positiva verso il basso, in metri.",
     "coordinates": "WGS84 (EPSG:4326), gradi decimali.",
     "data_format": "File CSV con intestazione. Dati originali: time,value,flag (un file per serie e per anno). Aggregati: time,value,[min],max,n,coverage. time = 'YYYY-MM-DD HH:MM' in UTC+1. flag: 0 valido, 1 sospetto, 2 errato. Aggregati calcolati sui soli flag < 2.",
-    "aggregation_labels": "Grandezze istantanee: etichetta = inizio intervallo. Pioggia: ogni dato è riferito all'intervallo che termina al timestamp; l'etichetta indica l'inizio del periodo di cumulo."
+    "aggregation_labels": "Grandezze istantanee: etichetta = inizio intervallo. Pioggia: ogni dato è riferito all'intervallo che termina al timestamp; l'etichetta indica l'inizio del periodo di cumulo.",
+    "gridded_products": "Stazioni con kind = 'grid' sono pixel di prodotti a griglia scaricati da Google Earth Engine (pipeline/ingest_gee.py): ERA5-Land (0,1°, orario) e SMAP L4 (~9 km, medie su 3 h). I valori sono medie di pixel, non misure puntuali. I timestamp GEE (UTC) sono convertiti in UTC+1 (+1 h). Per i prodotti a strati il codice a 3 cifre della serie è la profondità inferiore dello strato in cm (PRF = intero profilo); vedi layer_label e depth_range_m.",
+    "derived_series": "Serie con 'derived_from' sono calcolate da altre serie: VAG_CF_RAIN24H e VAG_CF_RAINCUM (passo 1 minuto) da pipeline/build_vaglio.py; <STAZIONE>_RAINCUM dei pixel a griglia da pipeline/derive_cumulative.py. Pioggia cumulata (variabile rain_cum): cumulo dal 1 gennaio ore 00:00; il dato di pioggia delle 00:00 del 1 gennaio chiude l'anno precedente. Aggregati (data/agg): value = cumulata a fine intervallo, min e max = estremi nell'intervallo, etichetta = inizio intervallo; colonne time,value,min,max,n,coverage,flag. flag 1 = cumulata sottostimata per dati mancanti (soglia in qc_rules.json -> cumulative)."
   },
   "variables": {
     "rain": {
@@ -55,6 +57,13 @@
       "aggregation": "mean",
       "plot": "line",
       "notes": "Valori negativi = suzione. TEROS 21: accuratezza dichiarata tra -9 e -100 kPa; valori > -9 kPa (prossimi alla saturazione) sono indicativi."
+    },
+    "t_air": {
+      "label_it": "Temperatura dell'aria (2 m)",
+      "label_en": "Air temperature (2 m)",
+      "unit": "°C",
+      "aggregation": "mean",
+      "plot": "line"
     }
   },
   "stations": [
@@ -80,6 +89,49 @@
       "owner": "Università di Salerno",
       "device": "METER z6-18720",
       "notes": "Nodo METER per il terreno (z6-18720): TEROS 10 (contenuto d'acqua), TEROS 21 (potenziale matriciale e temperatura), profondità 12, 40 e 60 cm."
+    },
+    {
+      "station_id": "ERA5_E159_N407",
+      "name": "ERA5-Land · 15.9°E 40.7°N",
+      "site": "Area di Vaglio di Basilicata",
+      "municipality": null,
+      "lat": 40.7,
+      "lon": 15.9,
+      "elevation_m": null,
+      "owner": "ECMWF – Copernicus Climate Change Service (ERA5-Land)",
+      "external_code": null,
+      "kind": "grid",
+      "product": "ERA5-Land",
+      "notes": "Pixel ERA5-Land 0,1° (~9 km): media sull'area del pixel, non misura puntuale. Dati scaricati da Google Earth Engine (collezione ECMWF/ERA5_LAND/HOURLY). Nel CSV la posizione del punto di campionamento compare con 2 coordinate quasi coincidenti (lon, lat: 15.900896, 40.699774; 15.901720, 40.699774; scarto massimo 70 m): stesso pixel 0,1°, serie unica.",
+      "sample_points": null,
+      "distance_km": {
+        "VAG_CF": 3.63,
+        "VAG_S3": 3.9
+      }
+    },
+    {
+      "station_id": "SMAP_E1594_N4070",
+      "name": "SMAP L4 · 15.94°E 40.70°N",
+      "site": "Area di Vaglio di Basilicata",
+      "municipality": null,
+      "lat": 40.6994,
+      "lon": 15.9371,
+      "elevation_m": null,
+      "owner": "NASA – SMAP Level 4 (GMAO)",
+      "external_code": null,
+      "kind": "grid",
+      "product": "SMAP L4",
+      "notes": "Pixel SMAP L4 (griglia EASE ~9 km): media sull'area del pixel, non misura puntuale. Medie su 3 h con etichetta a metà intervallo (01:30 UTC = 02:30 UTC+1). Dati scaricati da Google Earth Engine (collezione NASA/SMAP/SPL4SMGP).",
+      "sample_points": [
+        [
+          15.9371,
+          40.6994
+        ]
+      ],
+      "distance_km": {
+        "VAG_CF": 3.81,
+        "VAG_S3": 3.95
+      }
     }
   ],
   "instruments": [
@@ -94,9 +146,618 @@
       "station_id": "VAG_S3",
       "manufacturer": "METER Group",
       "type": "Datalogger METER z6-18720 con sensori TEROS 10 (contenuto d'acqua) e TEROS 21 (potenziale matriciale e temperatura nel terreno)"
+    },
+    {
+      "instrument_id": "ERA5_E159_N407_MODEL",
+      "station_id": "ERA5_E159_N407",
+      "manufacturer": "ECMWF / Copernicus C3S",
+      "type": "Rianalisi ERA5-Land oraria (collezione GEE ECMWF/ERA5_LAND/HOURLY), pixel 0,1° (~9 km)"
+    },
+    {
+      "instrument_id": "SMAP_E1594_N4070_MODEL",
+      "station_id": "SMAP_E1594_N4070",
+      "manufacturer": "NASA GMAO",
+      "type": "Prodotto SMAP L4 Soil Moisture (collezione GEE NASA/SMAP/SPL4SMGP), pixel ~9 km, medie su 3 h"
     }
   ],
   "series": [
+    {
+      "series_id": "ERA5_E159_N407_RAIN",
+      "instrument_id": "ERA5_E159_N407_MODEL",
+      "station_id": "ERA5_E159_N407",
+      "variable": "rain",
+      "depth_m": null,
+      "depth_range_m": null,
+      "layer_label": null,
+      "sensor_model": "ERA5-Land",
+      "logger_port": null,
+      "label": "Pioggia – ERA5-Land · 15.9°E 40.7°N",
+      "unit": "mm",
+      "aggregation": "sum",
+      "step_min": 60.0,
+      "start": "2023-01-01T01:00+01:00",
+      "end": "2026-10-01T00:00+01:00",
+      "n_values": 32856,
+      "min": 0.0,
+      "max": 7.309,
+      "status": "active",
+      "gaps_over_24h": [],
+      "qc_notes": [
+        "Pioggia oraria ERA5-Land (total_precipitation_hourly, convertita da m a mm). Il valore si riferisce all'ora che termina al timestamp GEE (convenzione ECMWF). Verifica con il pluviometro CFD di Vaglio a passo 1 minuto (2023–2026): la correlazione oraria è massima quando la finestra del pluviometro termina al timestamp ERA5 (r ≈ 0.34–0.36 con scarti da −45 a +15 min) e cala se la finestra parte dal timestamp (r = 0.29 a +60 min). La convenzione è coerente con i dati, ma con un pixel di ~9 km non è distinguibile al di sotto di ±1 h.",
+        "Totali annui (dati disponibili): 2023: 888 mm; 2024: 604 mm; 2025: 658 mm; 2026: 509 mm.",
+        "565 valori negativi di arrotondamento numerico (di entità trascurabile, < 0.0001 mm) azzerati; molti valori positivi sono inferiori a 0.01 mm (rumore numerico del modello).",
+        "Confronto giornaliero con il pluviometro CFD di Vaglio (991 m s.l.m.) su 1366 giorni comuni: 2657 mm ERA5-Land contro 2599 mm misurati (rapporto 1.02), r giornaliero = 0.69. Per anno (giorni comuni, ERA5-Land contro pluviometro): 2023: 888 contro 747 mm; 2024: 604 contro 617 mm; 2025: 657 contro 575 mm; 2026: 509 contro 661 mm. Pixel di ~9 km contro misura puntuale: gli scarti annui possono superare il 20 %."
+      ],
+      "sources": [
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2023,
+          "sheet": null,
+          "column": "total_precipitation_hourly"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2024,
+          "sheet": null,
+          "column": "total_precipitation_hourly"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2025,
+          "sheet": null,
+          "column": "total_precipitation_hourly"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2026,
+          "sheet": null,
+          "column": "total_precipitation_hourly"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/ERA5_E159_N407_RAIN/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/ERA5_E159_N407_RAIN_1h.csv",
+        "agg_1d": "data/agg/ERA5_E159_N407_RAIN_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 32856,
+        "n_valid": 32856,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 0
+      }
+    },
+    {
+      "series_id": "ERA5_E159_N407_RAINCUM",
+      "instrument_id": "ERA5_E159_N407_MODEL",
+      "station_id": "ERA5_E159_N407",
+      "variable": "rain_cum",
+      "depth_m": null,
+      "sensor_model": null,
+      "logger_port": null,
+      "label": "Pioggia cumulata dal 1° gennaio – ERA5-Land · 15.9°E 40.7°N",
+      "unit": "mm",
+      "aggregation": "last",
+      "step_min": 60.0,
+      "start": "2023-01-01T01:00+01:00",
+      "end": "2026-10-01T00:00+01:00",
+      "n_values": 32856,
+      "min": 0.0,
+      "max": 888.18,
+      "status": "active",
+      "gaps_over_24h": [],
+      "qc_notes": [
+        "Serie derivata da ERA5_E159_N407_RAIN: pioggia cumulata dal 1 gennaio ore 00:00 (si azzera ogni anno), calcolata sui dati con flag < 2. Il dato delle 00:00 del 1 gennaio chiude l'anno precedente.",
+        "Totali annui: 2023: 888.2 mm; 2024: 603.6 mm; 2025: 658.4 mm; 2026: 508.8 mm."
+      ],
+      "sources": [],
+      "derived_from": "ERA5_E159_N407_RAIN",
+      "cumulative_years": [
+        {
+          "year": 2023,
+          "total_mm": 888.18,
+          "n": 8760,
+          "first": "2023-01-01 01:00",
+          "last": "2024-01-01 00:00",
+          "missing_hours": 0.0,
+          "complete": true
+        },
+        {
+          "year": 2024,
+          "total_mm": 603.61,
+          "n": 8784,
+          "first": "2024-01-01 01:00",
+          "last": "2025-01-01 00:00",
+          "missing_hours": 0.0,
+          "complete": true
+        },
+        {
+          "year": 2025,
+          "total_mm": 658.37,
+          "n": 8760,
+          "first": "2025-01-01 01:00",
+          "last": "2026-01-01 00:00",
+          "missing_hours": 0.0,
+          "complete": true
+        },
+        {
+          "year": 2026,
+          "total_mm": 508.8,
+          "n": 6552,
+          "first": "2026-01-01 01:00",
+          "last": "2026-10-01 00:00",
+          "missing_hours": 0.0,
+          "complete": true
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/ERA5_E159_N407_RAINCUM/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/ERA5_E159_N407_RAINCUM_1h.csv",
+        "agg_1d": "data/agg/ERA5_E159_N407_RAINCUM_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 32856,
+        "n_valid": 32856,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 0
+      }
+    },
+    {
+      "series_id": "ERA5_E159_N407_TAIR",
+      "instrument_id": "ERA5_E159_N407_MODEL",
+      "station_id": "ERA5_E159_N407",
+      "variable": "t_air",
+      "depth_m": null,
+      "depth_range_m": null,
+      "layer_label": null,
+      "sensor_model": "ERA5-Land",
+      "logger_port": null,
+      "label": "Temperatura dell'aria (2 m) – ERA5-Land · 15.9°E 40.7°N",
+      "unit": "°C",
+      "aggregation": "mean",
+      "step_min": 60.0,
+      "start": "2023-01-01T01:00+01:00",
+      "end": "2026-10-01T00:00+01:00",
+      "n_values": 32856,
+      "min": -6.41,
+      "max": 38.63,
+      "status": "active",
+      "gaps_over_24h": [],
+      "qc_notes": [
+        "Temperatura dell'aria a 2 m ERA5-Land (convertita da K a °C), valore istantaneo orario del pixel. Il ciclo giornaliero ha il massimo alle 13:00 dell'ora originale GEE, sia in estate sia in inverno (mezzogiorno solare a Vaglio ≈ 10:56 UTC): conferma che il CSV è in UTC; ad esso si aggiunge 1 h per ottenere UTC+1."
+      ],
+      "sources": [
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2023,
+          "sheet": null,
+          "column": "temperature_2m"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2024,
+          "sheet": null,
+          "column": "temperature_2m"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2025,
+          "sheet": null,
+          "column": "temperature_2m"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2026,
+          "sheet": null,
+          "column": "temperature_2m"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/ERA5_E159_N407_TAIR/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/ERA5_E159_N407_TAIR_1h.csv",
+        "agg_1d": "data/agg/ERA5_E159_N407_TAIR_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 32856,
+        "n_valid": 32856,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 0
+      }
+    },
+    {
+      "series_id": "ERA5_E159_N407_VWC_007",
+      "instrument_id": "ERA5_E159_N407_MODEL",
+      "station_id": "ERA5_E159_N407",
+      "variable": "vwc",
+      "depth_m": 0.07,
+      "depth_range_m": [
+        0.0,
+        0.07
+      ],
+      "layer_label": "0–7 cm",
+      "sensor_model": "ERA5-Land",
+      "logger_port": null,
+      "label": "Contenuto d'acqua del terreno 0–7 cm – ERA5-Land · 15.9°E 40.7°N",
+      "unit": "m3/m3",
+      "aggregation": "mean",
+      "step_min": 60.0,
+      "start": "2023-01-01T01:00+01:00",
+      "end": "2026-10-01T00:00+01:00",
+      "n_values": 32856,
+      "min": 0.1329,
+      "max": 0.439,
+      "status": "active",
+      "gaps_over_24h": [],
+      "qc_notes": [
+        "Contenuto d'acqua del terreno stimato dal modello ERA5-Land (strato 0–7 cm) come media del pixel di 0,1° (~9 km): confronto con i sensori in situ solo indicativo (scala e profondità diverse). Valore istantaneo orario.",
+        "Confronto giornaliero con il nodo S3 su 875 giorni comuni (2023-08-08 → 2025-12-31), prodotto − sensore, rispetto al sensore a 12 cm: r = 0.82, scarto medio -0.036 m³/m³; rispetto alla media dei sensori a 12, 40 e 60 cm: r = 0.82, scarto medio -0.028 m³/m³. Pixel di ~9 km contro misure puntuali: confronto indicativo."
+      ],
+      "sources": [
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2023,
+          "sheet": null,
+          "column": "volumetric_soil_water_layer_1"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2024,
+          "sheet": null,
+          "column": "volumetric_soil_water_layer_1"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2025,
+          "sheet": null,
+          "column": "volumetric_soil_water_layer_1"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2026,
+          "sheet": null,
+          "column": "volumetric_soil_water_layer_1"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/ERA5_E159_N407_VWC_007/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/ERA5_E159_N407_VWC_007_1h.csv",
+        "agg_1d": "data/agg/ERA5_E159_N407_VWC_007_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 32856,
+        "n_valid": 32856,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 0
+      }
+    },
+    {
+      "series_id": "ERA5_E159_N407_VWC_028",
+      "instrument_id": "ERA5_E159_N407_MODEL",
+      "station_id": "ERA5_E159_N407",
+      "variable": "vwc",
+      "depth_m": 0.28,
+      "depth_range_m": [
+        0.07,
+        0.28
+      ],
+      "layer_label": "7–28 cm",
+      "sensor_model": "ERA5-Land",
+      "logger_port": null,
+      "label": "Contenuto d'acqua del terreno 7–28 cm – ERA5-Land · 15.9°E 40.7°N",
+      "unit": "m3/m3",
+      "aggregation": "mean",
+      "step_min": 60.0,
+      "start": "2023-01-01T01:00+01:00",
+      "end": "2026-10-01T00:00+01:00",
+      "n_values": 32856,
+      "min": 0.1502,
+      "max": 0.439,
+      "status": "active",
+      "gaps_over_24h": [],
+      "qc_notes": [
+        "Contenuto d'acqua del terreno stimato dal modello ERA5-Land (strato 7–28 cm) come media del pixel di 0,1° (~9 km): confronto con i sensori in situ solo indicativo (scala e profondità diverse). Valore istantaneo orario.",
+        "Confronto giornaliero con il nodo S3 su 875 giorni comuni (2023-08-08 → 2025-12-31), prodotto − sensore, rispetto al sensore a 12 cm: r = 0.86, scarto medio -0.047 m³/m³; rispetto alla media dei sensori a 12, 40 e 60 cm: r = 0.87, scarto medio -0.039 m³/m³. Pixel di ~9 km contro misure puntuali: confronto indicativo."
+      ],
+      "sources": [
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2023,
+          "sheet": null,
+          "column": "volumetric_soil_water_layer_2"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2024,
+          "sheet": null,
+          "column": "volumetric_soil_water_layer_2"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2025,
+          "sheet": null,
+          "column": "volumetric_soil_water_layer_2"
+        },
+        {
+          "file": "Vaglio_ERA5Land.csv",
+          "year": 2026,
+          "sheet": null,
+          "column": "volumetric_soil_water_layer_2"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/ERA5_E159_N407_VWC_028/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/ERA5_E159_N407_VWC_028_1h.csv",
+        "agg_1d": "data/agg/ERA5_E159_N407_VWC_028_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 32856,
+        "n_valid": 32856,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 0
+      }
+    },
+    {
+      "series_id": "SMAP_E1594_N4070_VWC_005",
+      "instrument_id": "SMAP_E1594_N4070_MODEL",
+      "station_id": "SMAP_E1594_N4070",
+      "variable": "vwc",
+      "depth_m": 0.05,
+      "depth_range_m": [
+        0.0,
+        0.05
+      ],
+      "layer_label": "0–5 cm",
+      "sensor_model": "SMAP L4",
+      "logger_port": null,
+      "label": "Contenuto d'acqua del terreno 0–5 cm – SMAP L4 · 15.94°E 40.70°N",
+      "unit": "m3/m3",
+      "aggregation": "mean",
+      "step_min": 180.0,
+      "start": "2023-01-01T02:30+01:00",
+      "end": "2026-09-30T23:30+01:00",
+      "n_values": 10942,
+      "min": 0.0151,
+      "max": 0.4112,
+      "status": "active",
+      "gaps_over_24h": [],
+      "qc_notes": [
+        "Contenuto d'acqua del terreno SMAP L4 (strato 0–5 cm) come media del pixel (~9 km) su intervalli di 3 h; l'etichetta temporale è il punto medio dell'intervallo. Confronto con i sensori in situ solo indicativo.",
+        "Confronto giornaliero con il nodo S3 su 872 giorni comuni (2023-08-08 → 2025-12-31), prodotto − sensore, rispetto al sensore a 12 cm: r = 0.81, scarto medio -0.152 m³/m³; rispetto alla media dei sensori a 12, 40 e 60 cm: r = 0.81, scarto medio -0.144 m³/m³. Pixel di ~9 km contro misure puntuali: confronto indicativo.",
+        "5 interruzioni rispetto al passo nominale di 180 min (la più lunga: 18 h, 2025-10-26 08:30 → 2025-10-27 02:30); nessuna supera 24 h."
+      ],
+      "sources": [
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2023,
+          "sheet": null,
+          "column": "sm_surface"
+        },
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2024,
+          "sheet": null,
+          "column": "sm_surface"
+        },
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2025,
+          "sheet": null,
+          "column": "sm_surface"
+        },
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2026,
+          "sheet": null,
+          "column": "sm_surface"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/SMAP_E1594_N4070_VWC_005/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/SMAP_E1594_N4070_VWC_005_1h.csv",
+        "agg_1d": "data/agg/SMAP_E1594_N4070_VWC_005_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 10942,
+        "n_valid": 10942,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 0
+      }
+    },
+    {
+      "series_id": "SMAP_E1594_N4070_VWC_100",
+      "instrument_id": "SMAP_E1594_N4070_MODEL",
+      "station_id": "SMAP_E1594_N4070",
+      "variable": "vwc",
+      "depth_m": 1.0,
+      "depth_range_m": [
+        0.0,
+        1.0
+      ],
+      "layer_label": "0–100 cm",
+      "sensor_model": "SMAP L4",
+      "logger_port": null,
+      "label": "Contenuto d'acqua del terreno 0–100 cm – SMAP L4 · 15.94°E 40.70°N",
+      "unit": "m3/m3",
+      "aggregation": "mean",
+      "step_min": 180.0,
+      "start": "2023-01-01T02:30+01:00",
+      "end": "2026-09-30T23:30+01:00",
+      "n_values": 10942,
+      "min": 0.1265,
+      "max": 0.3984,
+      "status": "active",
+      "gaps_over_24h": [],
+      "qc_notes": [
+        "Contenuto d'acqua del terreno SMAP L4 (strato 0–100 cm) come media del pixel (~9 km) su intervalli di 3 h; l'etichetta temporale è il punto medio dell'intervallo. Confronto con i sensori in situ solo indicativo.",
+        "Confronto giornaliero con il nodo S3 su 872 giorni comuni (2023-08-08 → 2025-12-31), prodotto − sensore, rispetto al sensore a 12 cm: r = 0.78, scarto medio -0.101 m³/m³; rispetto alla media dei sensori a 12, 40 e 60 cm: r = 0.79, scarto medio -0.093 m³/m³. Pixel di ~9 km contro misure puntuali: confronto indicativo.",
+        "5 interruzioni rispetto al passo nominale di 180 min (la più lunga: 18 h, 2025-10-26 08:30 → 2025-10-27 02:30); nessuna supera 24 h."
+      ],
+      "sources": [
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2023,
+          "sheet": null,
+          "column": "sm_rootzone"
+        },
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2024,
+          "sheet": null,
+          "column": "sm_rootzone"
+        },
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2025,
+          "sheet": null,
+          "column": "sm_rootzone"
+        },
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2026,
+          "sheet": null,
+          "column": "sm_rootzone"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/SMAP_E1594_N4070_VWC_100/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/SMAP_E1594_N4070_VWC_100_1h.csv",
+        "agg_1d": "data/agg/SMAP_E1594_N4070_VWC_100_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 10942,
+        "n_valid": 10942,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 0
+      }
+    },
+    {
+      "series_id": "SMAP_E1594_N4070_VWC_PRF",
+      "instrument_id": "SMAP_E1594_N4070_MODEL",
+      "station_id": "SMAP_E1594_N4070",
+      "variable": "vwc",
+      "depth_m": null,
+      "depth_range_m": null,
+      "layer_label": "profilo intero",
+      "sensor_model": "SMAP L4",
+      "logger_port": null,
+      "label": "Contenuto d'acqua del terreno profilo intero – SMAP L4 · 15.94°E 40.70°N",
+      "unit": "m3/m3",
+      "aggregation": "mean",
+      "step_min": 180.0,
+      "start": "2023-01-01T02:30+01:00",
+      "end": "2026-09-30T23:30+01:00",
+      "n_values": 10942,
+      "min": 0.1277,
+      "max": 0.3905,
+      "status": "active",
+      "gaps_over_24h": [],
+      "qc_notes": [
+        "Contenuto d'acqua del terreno SMAP L4 (strato profilo intero) come media del pixel (~9 km) su intervalli di 3 h; l'etichetta temporale è il punto medio dell'intervallo. Confronto con i sensori in situ solo indicativo.",
+        "Strato 'profilo intero': dalla superficie al substrato del modello (profondità variabile).",
+        "Confronto giornaliero con il nodo S3 su 872 giorni comuni (2023-08-08 → 2025-12-31), prodotto − sensore, rispetto al sensore a 12 cm: r = 0.77, scarto medio -0.104 m³/m³; rispetto alla media dei sensori a 12, 40 e 60 cm: r = 0.78, scarto medio -0.096 m³/m³. Pixel di ~9 km contro misure puntuali: confronto indicativo.",
+        "5 interruzioni rispetto al passo nominale di 180 min (la più lunga: 18 h, 2025-10-26 08:30 → 2025-10-27 02:30); nessuna supera 24 h."
+      ],
+      "sources": [
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2023,
+          "sheet": null,
+          "column": "sm_profile"
+        },
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2024,
+          "sheet": null,
+          "column": "sm_profile"
+        },
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2025,
+          "sheet": null,
+          "column": "sm_profile"
+        },
+        {
+          "file": "Vaglio_SMAP_L4.csv",
+          "year": 2026,
+          "sheet": null,
+          "column": "sm_profile"
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/SMAP_E1594_N4070_VWC_PRF/{year}.csv",
+        "years": [
+          2023,
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/SMAP_E1594_N4070_VWC_PRF_1h.csv",
+        "agg_1d": "data/agg/SMAP_E1594_N4070_VWC_PRF_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 10942,
+        "n_valid": 10942,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 0
+      }
+    },
     {
       "series_id": "VAG_CF_RAIN",
       "instrument_id": "VAG_CF_RAIN",
@@ -1001,6 +1662,10 @@
       },
       "t_soil": {
         "min": -10.0,
+        "max": 50.0
+      },
+      "t_air": {
+        "min": -30.0,
         "max": 50.0
       }
     },

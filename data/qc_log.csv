@@ -1,4 +1,5 @@
 series_id,rule,flag,n,first,last
+ERA5_E159_N407_RAIN,valori negativi di arrotondamento numerico azzerati,0.0,565,,
 VAG_CF_RAIN,picco isolato > 20 mm/h,1.0,1,2023-05-02 11:46,2023-05-02 11:46
 VAG_CF_RAIN,picco isolato > 20 mm/h,1.0,1,2026-07-02 12:10,2026-07-02 12:10
 VAG_S3_PSI_012,timestamp duplicati rimossi,,15,,
