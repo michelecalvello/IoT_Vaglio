@@ -8,12 +8,12 @@
   // ---------------------------------------------------------------- costanti
   const MAX_SERIES = 20;
   const DAY = 86400000;
-  const VAR_ORDER = ["rain", "rain_24h", "rain_cum", "stage", "vwc", "sm", "psi", "t_soil", "t_air"];
+  const VAR_ORDER = ["rain", "rain_24h", "rain_cum", "stage", "gwl", "vwc", "sr", "sm", "psi", "t_soil", "t_air", "i_loop"];
   const PANEL_WEIGHT = { rain: 0.6 };
   const AUTO_RES = (spanDays) => (spanDays > 90 ? "1d" : spanDays > 4 ? "1h" : "raw");
   const RAW_MAX_DAYS = 62;
   const RES_LABEL = { raw: "dato originale", "10min": "a 10 minuti", "1h": "oraria", "1d": "giornaliera" };
-  const SHORT = { rain: "Pioggia", rain_24h: "Pioggia cumulata 24 h", rain_cum: "Pioggia dal 1° gennaio", stage: "Livello idrometrico", vwc: "Contenuto d'acqua", sm: "Umidità terreno (Aranet)",
+  const SHORT = { rain: "Pioggia", rain_24h: "Pioggia cumulata 24 h", rain_cum: "Pioggia dal 1° gennaio", stage: "Livello idrometrico", vwc: "Contenuto d'acqua", sm: "Umidità terreno (Aranet)", sr: "Grado di saturazione", gwl: "Livello piezometrico", i_loop: "Corrente sensore",
                   psi: "Potenziale matriciale", t_soil: "Temperatura terreno", t_air: "Temperatura aria (2 m)" };
   const UNIT = (u) => u.replace("m3/m3", "m³/m³");
   const isCum = (v) => v === "rain_cum" || v === "rain_24h";      // serie cumulate derivate dalla pioggia

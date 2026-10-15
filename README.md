@@ -9,6 +9,10 @@ Dati di monitoraggio a Vaglio di Basilicata (PZ):
 - **contenuto d'acqua volumetrico**, **potenziale matriciale** e **temperatura del terreno** dal nodo S3
   (datalogger METER z6-18720, sensori TEROS 10 e TEROS 21), profondità 12, 40 e 60 cm, passo 5 minuti,
   dall'8 agosto 2023 al 31 dicembre 2025;
+- **grado di saturazione del terreno** dai sensori **Aranet** dei siti Chiesa (verticali C1 e C2), Museo (M1) e Villa Museo (M2, M3),
+  profondità da 12 a 70 cm, passo 1 minuto, dal 1 gennaio 2024 al 13 aprile 2026;
+- **livello piezometrico** e **corrente del segnale 4–20 mA** di quattro piezometri (nodi Aranet), da gennaio 2024 a dicembre 2025
+  (dati validi solo fino ad agosto–settembre 2024, poi avaria dei sensori);
 - **prodotti a griglia da Google Earth Engine**: contenuto d'acqua del terreno, pioggia e temperatura dell'aria di **ERA5-Land**
   (pixel 0,1°, passo 1 ora) e contenuto d'acqua del terreno di **SMAP L4** (pixel ~9 km, medie su 3 ore),
   dal 1 gennaio 2023 al 30 settembre 2026.
@@ -29,6 +33,10 @@ I pixel ERA5-Land e SMAP L4 sono mostrati in mappa con colori propri (legenda so
 |---|---|---|---|
 | `VAG_CF` | Vaglio di Basilicata – pluviometro (rete CFD) | 40°40'10" N, 15°54'55" E (40.669444, 15.915278) | 991 m s.l.m. |
 | `VAG_S3` | Vaglio – Nodo S3 (terreno), datalogger METER z6-18720, Università di Salerno | 40.6673775, 15.9168308 | 939 m s.l.m. |
+| `VAG_C1`, `VAG_C2` | Vaglio – Chiesa, verticali C1 e C2 (sensori Aranet) | 40.6656452, 15.9141604 | n.d. |
+| `VAG_M1` | Vaglio – Museo, verticale M1 (sensori Aranet) | 40.6674246, 15.9167809 | n.d. |
+| `VAG_M2`, `VAG_M3` | Vaglio – Villa Museo, verticali M2 e M3 (sensori Aranet) | 40.6671554, 15.9157314 | n.d. |
+| `VAG_PZ1` … `VAG_PZ4` | Vaglio – Piezometri 1–4 (nodi Aranet) | 40.6675746, 15.9156922 | n.d. |
 | `ERA5_E159_N407` | ERA5-Land · 15.9°E 40.7°N – pixel 0,1° (~9 km), prodotto a griglia | 40.7, 15.9 (centro pixel) | n.d. |
 | `SMAP_E1594_N4070` | SMAP L4 · 15.94°E 40.70°N – pixel ~9 km, prodotto a griglia | 40.6994, 15.9371 (indicativa) | n.d. |
 
@@ -40,14 +48,17 @@ python pipeline/build_vaglio.py       # data/ + catalog.json + series.csv + data
 python pipeline/ingest_gee.py         # prodotti a griglia da Google Earth Engine (ERA5-Land, SMAP L4)
 python pipeline/derive_cumulative.py  # pioggia cumulata dal 1 gennaio dei prodotti a griglia
 python pipeline/add_rain_history.py   # anni storici del pluviometro (2015–2016), con INPUT_DIR = cartella dei loro CSV
+python pipeline/ingest_aranet.py      # sensori Aranet (grado di saturazione, piezometri), con INPUT_DIR = cartella dei file Sensor_data_*.xlsx
 ```
 
 `build_vaglio.py` rigenera `catalog.json`, `series.csv` e `data/qc_log.csv` da zero: dopo ogni sua esecuzione vanno rieseguiti
-anche `ingest_gee.py` (con i CSV GEE in `INPUT_DIR`), `derive_cumulative.py` e `add_rain_history.py` (con i CSV storici del pluviometro). I file dei pixel in `data/raw` e `data/agg` non vengono cancellati.
+anche `ingest_gee.py` (con i CSV GEE in `INPUT_DIR`), `derive_cumulative.py`, `add_rain_history.py` (con i CSV storici del pluviometro)
+e `ingest_aranet.py` (con i file Aranet; richiede `pip install python-calamine`). I file dei pixel in `data/raw` e `data/agg` non vengono cancellati.
 
 I file sorgente sono:
 - CSV `… Intensità Pioggia … .csv` (mm/h, passo 1 minuto, ora locale CET/CEST), uno per mese;
 - `Vaglio_Meter_S3_<anno>.xlsx` (colonna `Time UTC+1`, sensori TEROS 10 e TEROS 21);
+- `Sensor_data_<ID>_…__<inizio>-<fine>_<gruppo>.xlsx`, esportati dalla piattaforma Aranet (un foglio per sensore, ora locale CET/CEST; letti da `ingest_aranet.py`);
 - `Vaglio_ERA5Land[_<anno>].csv` e `Vaglio_SMAP_L4[_<anno>].csv`, esportati da Google Earth Engine (letti da `ingest_gee.py`).
 
 Lo script:
@@ -91,6 +102,11 @@ data/qc_log.csv            elenco dei valori segnalati e regola applicata
 | `VAG_S3_VWC_012`, `_040`, `_060` | Contenuto d'acqua del terreno (TEROS 10) | m³/m³ | 5 min |
 | `VAG_S3_PSI_012`, `_040`, `_060` | Potenziale matriciale del terreno (TEROS 21) | kPa | 5 min |
 | `VAG_S3_TSOIL_012`, `_040`, `_060` | Temperatura del terreno (TEROS 21) | °C | 5 min |
+| `VAG_C1_SR_012`, `_040`, `_060` · `VAG_C2_SR_012`, `_040`, `_070` | Grado di saturazione del terreno (Aranet), Chiesa | % | 1 min |
+| `VAG_M1_SR_012`, `_040`, `_060` | Grado di saturazione del terreno (Aranet), Museo | % | 1 min |
+| `VAG_M2_SR_012`, `_020`, `_040`, `_060` · `VAG_M3_SR_012`, `_040`, `_060` | Grado di saturazione del terreno (Aranet), Villa Museo | % | 1 min |
+| `VAG_PZ1_GWL` … `VAG_PZ4_GWL` | Livello piezometrico (acqua sopra il sensore) | cm | 1–10 min |
+| `VAG_PZ1_ILOOP` … `VAG_PZ4_ILOOP` | Corrente del segnale 4–20 mA dei piezometri (diagnostica) | mA | 1–10 min |
 | `ERA5_E159_N407_VWC_007`, `_028` | Contenuto d'acqua del terreno ERA5-Land, strati 0–7 e 7–28 cm | m³/m³ | 1 h |
 | `ERA5_E159_N407_RAIN` | Pioggia ERA5-Land (convertita da m a mm) | mm | 1 h |
 | `ERA5_E159_N407_RAINCUM` | Pioggia cumulata dal 1° gennaio (derivata da `ERA5_E159_N407_RAIN`) | mm | 1 h |
@@ -113,6 +129,34 @@ Calcolate dallo script a passo 1 minuto, come il dato originale; ogni dato di pi
   `flag` = massimo del flag; `n` e `coverage` come per le altre serie.
 - **`ERA5_E159_N407_RAINCUM`** – stessa definizione per la pioggia ERA5-Land (passo 1 ora, calcolata da `derive_cumulative.py`, aggregati orari e giornalieri).
   Totali: 2023 888,2 mm; 2024 603,6 mm; 2025 658,4 mm; 2026 (al 30 settembre) 508,8 mm; nessun dato mancante, quindi nessun `flag` 1.
+
+## Sensori Aranet: grado di saturazione e piezometri
+
+`ingest_aranet.py` legge le esportazioni della piattaforma Aranet (`Sensor_data_*.xlsx`), scarta i file identici e unisce i periodi
+(2024, 2025, inverno 2025–26): a parità di istante vince l'esportazione più recente. Le serie Aranet già presenti nel catalogo vengono
+sostituite, le altre restano.
+
+- **Nomi dei sensori.** `C2A40` = sito Chiesa, verticale 2, profondità 40 cm; `M1…` = Museo; `M2…`, `M3…` = Villa Museo;
+  `PIEZOMETRO n` = piezometro n. Una stazione per verticale (`VAG_C1`, `VAG_C2`, `VAG_M1`, `VAG_M2`, `VAG_M3`) e una per piezometro (`VAG_PZ1`…`VAG_PZ4`).
+  Le verticali dello stesso sito e i quattro piezometri hanno le stesse coordinate: in mappa i marcatori sono affiancati.
+- **Tempo.** I file sono in ora locale (CET/CEST): convertiti in UTC+1 e arrotondati al minuto. L'ora ripetuta di ottobre è riconosciuta
+  dall'ordine delle righe (dopo il salto all'indietro è CET); a ottobre 2024 l'esportazione contiene quell'ora una sola volta.
+- **Grado di saturazione (`sr`, %).** Nei file la colonna si chiama `Volumetric water content (%)`, ma il dato è il **grado di saturazione**
+  Sr (100 % = terreno saturo). Per confrontarlo con il contenuto d'acqua volumetrico dei TEROS 10 di S3 (m³/m³) serve la porosità: θ = Sr × n.
+- **Piezometri.** Trasduttori 4–20 mA con fondo scala 500 cm: livello = 31,25 × (I − 4 mA). Il livello è l'altezza d'acqua sopra il
+  sensore (0 = nessuna acqua sopra il sensore). Passo 1 minuto, dal 10 maggio 2024 10 minuti per il PZ1 e 5 minuti per il PZ3.
+
+**Controllo di qualità** (`qc_rules.json`, blocchi `range_by_variable`, `aranet` e `windows`):
+- `sr` fuori da 0–100 % → errato; `sr` ≤ 1 % → sospetto (terreno completamente secco, probabile perdita di contatto: quasi tutti nel sensore C2 a 12 cm);
+  picco isolato di oltre 10 punti rispetto ai due minuti adiacenti → sospetto.
+- Piezometri: corrente < 3,8 mA (fuori dal campo 4–20 mA) → livello errato, corrente sospetta; finestre di avaria con livello errato:
+  PZ1 dal 13 settembre 2024, PZ2 per l'intero periodo (segnale instabile già da fine gennaio 2024), PZ3 dal 19 settembre 2024, PZ4 dal 12 agosto 2024.
+  **Nel 2025 nessun piezometro fornisce dati validi.**
+- Dati validi dei piezometri: PZ3 è l'unico con un segnale significativo (livello fino a 60–84 cm da febbraio a giugno 2024, poi 0);
+  PZ1 e PZ4 restano a 0 cm (una sola risalita a 15 cm del PZ1 il 4 agosto 2024, durante un temporale).
+- Lacune comuni a tutti i sensori Aranet (trasmissione): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (non esportato),
+  18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.
+- Altre note per sensore (fine delle registrazioni, cambi di comportamento, salti da verificare) sono nella scheda ⓘ e in `catalog.json` (`qc_notes`).
 
 ## Prodotti a griglia (Google Earth Engine): ERA5-Land e SMAP L4
 
@@ -166,7 +210,7 @@ La pioggia giornaliera ERA5-Land confrontata con il pluviometro CFD (1366 giorni
 ## Fonti dei dati
 
 - Pluviometro di Vaglio di Basilicata: Centro Funzionale Decentrato Basilicata – Regione Basilicata.
-- Nodo S3 (terreno): Università di Salerno.
+- Nodo S3 (terreno), sensori Aranet e piezometri: Università di Salerno.
 - ERA5-Land: ECMWF – Copernicus Climate Change Service (collezione GEE `ECMWF/ERA5_LAND/HOURLY`); SMAP L4: NASA GMAO (collezione GEE `NASA/SMAP/SPL4SMGP`); entrambi scaricati da Google Earth Engine.
 
 ## Visualizzare il portale in locale

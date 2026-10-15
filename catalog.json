@@ -1,6 +1,6 @@
 {
   "catalog_version": "0.4",
-  "generated": "2026-10-11T11:13:11+01:00",
+  "generated": "2026-10-15T15:27:59+01:00",
   "conventions": {
     "time_reference": "UTC+1 fisso (ora solare italiana, senza ora legale) per tutte le misure. Timestamp in ISO 8601 con offset '+01:00'. Il pluviometro è convertito da ora locale (CET/CEST); i file METER usano la colonna 'Time UTC+1'.",
     "series_id": "<STAZIONE>_<GRANDEZZA>[_<PROFONDITÀ cm, 3 cifre>]",
@@ -9,7 +9,8 @@
     "data_format": "File CSV con intestazione. Dati originali: time,value,flag (un file per serie e per anno). Aggregati: time,value,[min],max,n,coverage. time = 'YYYY-MM-DD HH:MM' in UTC+1. flag: 0 valido, 1 sospetto, 2 errato. Aggregati calcolati sui soli flag < 2.",
     "aggregation_labels": "Grandezze istantanee: etichetta = inizio intervallo. Pioggia: ogni dato è riferito all'intervallo che termina al timestamp; l'etichetta indica l'inizio del periodo di cumulo.",
     "gridded_products": "Stazioni con kind = 'grid' sono pixel di prodotti a griglia scaricati da Google Earth Engine (pipeline/ingest_gee.py): ERA5-Land (0,1°, orario) e SMAP L4 (~9 km, medie su 3 h). I valori sono medie di pixel, non misure puntuali. I timestamp GEE (UTC) sono convertiti in UTC+1 (+1 h). Per i prodotti a strati il codice a 3 cifre della serie è la profondità inferiore dello strato in cm (PRF = intero profilo); vedi layer_label e depth_range_m.",
-    "derived_series": "Serie con 'derived_from' sono calcolate da altre serie: VAG_CF_RAIN24H e VAG_CF_RAINCUM (passo 1 minuto) da pipeline/build_vaglio.py; <STAZIONE>_RAINCUM dei pixel a griglia da pipeline/derive_cumulative.py. Pioggia cumulata (variabile rain_cum): cumulo dal 1 gennaio ore 00:00; il dato di pioggia delle 00:00 del 1 gennaio chiude l'anno precedente. Aggregati (data/agg): value = cumulata a fine intervallo, min e max = estremi nell'intervallo, etichetta = inizio intervallo; colonne time,value,min,max,n,coverage,flag. flag 1 = cumulata sottostimata per dati mancanti (soglia in qc_rules.json -> cumulative)."
+    "derived_series": "Serie con 'derived_from' sono calcolate da altre serie: VAG_CF_RAIN24H e VAG_CF_RAINCUM (passo 1 minuto) da pipeline/build_vaglio.py; <STAZIONE>_RAINCUM dei pixel a griglia da pipeline/derive_cumulative.py. Pioggia cumulata (variabile rain_cum): cumulo dal 1 gennaio ore 00:00; il dato di pioggia delle 00:00 del 1 gennaio chiude l'anno precedente. Aggregati (data/agg): value = cumulata a fine intervallo, min e max = estremi nell'intervallo, etichetta = inizio intervallo; colonne time,value,min,max,n,coverage,flag. flag 1 = cumulata sottostimata per dati mancanti (soglia in qc_rules.json -> cumulative).",
+    "aranet": "Sensori Aranet (pipeline/ingest_aranet.py): gruppi CHIESA, MUSEO, VILLA MUSEO e PIEZOMETRI. Orari dei file in ora locale (CET/CEST) convertiti in UTC+1 e arrotondati al minuto. Nome sensore 'C2A40' = verticale C2, profondità 40 cm. Grado di saturazione (variabile sr, %) per i sensori nel terreno; livello (gwl, cm) e corrente (i_loop, mA) per i piezometri."
   },
   "variables": {
     "rain": {
@@ -64,6 +65,30 @@
       "unit": "°C",
       "aggregation": "mean",
       "plot": "line"
+    },
+    "sr": {
+      "label_it": "Grado di saturazione del terreno",
+      "label_en": "Soil degree of saturation",
+      "unit": "%",
+      "aggregation": "mean",
+      "plot": "line",
+      "notes": "Grado di saturazione Sr = volume d'acqua / volume dei vuoti, in %, misurato dai sensori Aranet. Nei file sorgente la colonna si chiama 'Volumetric water content (%)', ma il dato è un grado di saturazione (100 % = terreno saturo); non è confrontabile direttamente con il contenuto d'acqua volumetrico dei TEROS 10 (m3/m3), che è Sr × porosità."
+    },
+    "gwl": {
+      "label_it": "Livello piezometrico (acqua sopra il sensore)",
+      "label_en": "Piezometric level above sensor",
+      "unit": "cm",
+      "aggregation": "mean",
+      "plot": "line",
+      "notes": "Altezza della colonna d'acqua sopra il trasduttore del piezometro, calcolata dal segnale 4–20 mA: livello = 31,25 × (I − 4 mA), cioè 0–500 cm. 0 cm = nessuna acqua sopra il sensore. Valori con corrente < 3,8 mA (segnale fuori scala, guasto o alimentazione insufficiente) sono errati."
+    },
+    "i_loop": {
+      "label_it": "Corrente del sensore (4–20 mA)",
+      "label_en": "Sensor loop current (4–20 mA)",
+      "unit": "mA",
+      "aggregation": "mean",
+      "plot": "line",
+      "notes": "Grandezza diagnostica del piezometro: 4 mA = livello 0, 20 mA = 500 cm. Sotto 3,8 mA il segnale è fuori dall'intervallo valido (segnalato come sospetto)."
     }
   },
   "stations": [
@@ -132,6 +157,123 @@
         "VAG_CF": 3.81,
         "VAG_S3": 3.95
       }
+    },
+    {
+      "station_id": "VAG_C1",
+      "name": "Vaglio – Chiesa, verticale C1",
+      "group": "CHIESA",
+      "lat": 40.66564524349381,
+      "lon": 15.914160379394056,
+      "elevation_m": null,
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "owner": "Università di Salerno",
+      "device": "Aranet",
+      "notes": "Sensori Aranet di umidità del terreno (grado di saturazione) a 12, 40 e 60 cm. Gruppo Aranet 'CHIESA'. Coordinate del sito (le verticali dello stesso gruppo e i quattro piezometri condividono le stesse coordinate; nel portale i marcatori sono affiancati). Quota da definire."
+    },
+    {
+      "station_id": "VAG_C2",
+      "name": "Vaglio – Chiesa, verticale C2",
+      "group": "CHIESA",
+      "lat": 40.66564524349381,
+      "lon": 15.914160379394056,
+      "elevation_m": null,
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "owner": "Università di Salerno",
+      "device": "Aranet",
+      "notes": "Sensori Aranet di umidità del terreno (grado di saturazione) a 12, 40 e 70 cm. Gruppo Aranet 'CHIESA'. Coordinate del sito (le verticali dello stesso gruppo e i quattro piezometri condividono le stesse coordinate; nel portale i marcatori sono affiancati). Quota da definire."
+    },
+    {
+      "station_id": "VAG_M1",
+      "name": "Vaglio – Museo, verticale M1",
+      "group": "MUSEO",
+      "lat": 40.66742456965478,
+      "lon": 15.916780949585764,
+      "elevation_m": null,
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "owner": "Università di Salerno",
+      "device": "Aranet",
+      "notes": "Sensori Aranet di umidità del terreno (grado di saturazione) a 12, 40 e 60 cm. Gruppo Aranet 'MUSEO'. Coordinate del sito (le verticali dello stesso gruppo e i quattro piezometri condividono le stesse coordinate; nel portale i marcatori sono affiancati). Quota da definire."
+    },
+    {
+      "station_id": "VAG_M2",
+      "name": "Vaglio – Villa Museo, verticale M2",
+      "group": "VILLA MUSEO",
+      "lat": 40.66715541624767,
+      "lon": 15.915731436710464,
+      "elevation_m": null,
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "owner": "Università di Salerno",
+      "device": "Aranet",
+      "notes": "Sensori Aranet di umidità del terreno (grado di saturazione) a 12, 20, 40 e 60 cm. Gruppo Aranet 'VILLA MUSEO'. Coordinate del sito (le verticali dello stesso gruppo e i quattro piezometri condividono le stesse coordinate; nel portale i marcatori sono affiancati). Quota da definire."
+    },
+    {
+      "station_id": "VAG_M3",
+      "name": "Vaglio – Villa Museo, verticale M3",
+      "group": "VILLA MUSEO",
+      "lat": 40.66715541624767,
+      "lon": 15.915731436710464,
+      "elevation_m": null,
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "owner": "Università di Salerno",
+      "device": "Aranet",
+      "notes": "Sensori Aranet di umidità del terreno (grado di saturazione) a 12, 40 e 60 cm. Gruppo Aranet 'VILLA MUSEO'. Coordinate del sito (le verticali dello stesso gruppo e i quattro piezometri condividono le stesse coordinate; nel portale i marcatori sono affiancati). Quota da definire."
+    },
+    {
+      "station_id": "VAG_PZ1",
+      "name": "Vaglio – Piezometro 1",
+      "group": "PIEZOMETRI",
+      "lat": 40.667574562013975,
+      "lon": 15.91569219409092,
+      "elevation_m": null,
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "owner": "Università di Salerno",
+      "device": "Aranet",
+      "notes": "Piezometro con trasduttore di pressione 4–20 mA collegato a nodo Aranet: livello dell'acqua sopra il sensore (0–500 cm) e corrente del segnale. Gruppo Aranet 'PIEZOMETRI'. Coordinate del sito (le verticali dello stesso gruppo e i quattro piezometri condividono le stesse coordinate; nel portale i marcatori sono affiancati). Quota da definire."
+    },
+    {
+      "station_id": "VAG_PZ2",
+      "name": "Vaglio – Piezometro 2",
+      "group": "PIEZOMETRI",
+      "lat": 40.667574562013975,
+      "lon": 15.91569219409092,
+      "elevation_m": null,
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "owner": "Università di Salerno",
+      "device": "Aranet",
+      "notes": "Piezometro con trasduttore di pressione 4–20 mA collegato a nodo Aranet: livello dell'acqua sopra il sensore (0–500 cm) e corrente del segnale. Gruppo Aranet 'PIEZOMETRI'. Coordinate del sito (le verticali dello stesso gruppo e i quattro piezometri condividono le stesse coordinate; nel portale i marcatori sono affiancati). Quota da definire."
+    },
+    {
+      "station_id": "VAG_PZ3",
+      "name": "Vaglio – Piezometro 3",
+      "group": "PIEZOMETRI",
+      "lat": 40.667574562013975,
+      "lon": 15.91569219409092,
+      "elevation_m": null,
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "owner": "Università di Salerno",
+      "device": "Aranet",
+      "notes": "Piezometro con trasduttore di pressione 4–20 mA collegato a nodo Aranet: livello dell'acqua sopra il sensore (0–500 cm) e corrente del segnale. Gruppo Aranet 'PIEZOMETRI'. Coordinate del sito (le verticali dello stesso gruppo e i quattro piezometri condividono le stesse coordinate; nel portale i marcatori sono affiancati). Quota da definire."
+    },
+    {
+      "station_id": "VAG_PZ4",
+      "name": "Vaglio – Piezometro 4",
+      "group": "PIEZOMETRI",
+      "lat": 40.667574562013975,
+      "lon": 15.91569219409092,
+      "elevation_m": null,
+      "site": "Vaglio di Basilicata",
+      "municipality": "Vaglio di Basilicata (PZ)",
+      "owner": "Università di Salerno",
+      "device": "Aranet",
+      "notes": "Piezometro con trasduttore di pressione 4–20 mA collegato a nodo Aranet: livello dell'acqua sopra il sensore (0–500 cm) e corrente del segnale. Gruppo Aranet 'PIEZOMETRI'. Coordinate del sito (le verticali dello stesso gruppo e i quattro piezometri condividono le stesse coordinate; nel portale i marcatori sono affiancati). Quota da definire."
     }
   ],
   "instruments": [
@@ -158,6 +300,60 @@
       "station_id": "SMAP_E1594_N4070",
       "manufacturer": "NASA GMAO",
       "type": "Prodotto SMAP L4 Soil Moisture (collezione GEE NASA/SMAP/SPL4SMGP), pixel ~9 km, medie su 3 h"
+    },
+    {
+      "instrument_id": "VAG_C1_ARANET",
+      "station_id": "VAG_C1",
+      "manufacturer": "Aranet (SAF Tehnika)",
+      "type": "Sensori Aranet di umidità del terreno: grado di saturazione (%)"
+    },
+    {
+      "instrument_id": "VAG_C2_ARANET",
+      "station_id": "VAG_C2",
+      "manufacturer": "Aranet (SAF Tehnika)",
+      "type": "Sensori Aranet di umidità del terreno: grado di saturazione (%)"
+    },
+    {
+      "instrument_id": "VAG_M1_ARANET",
+      "station_id": "VAG_M1",
+      "manufacturer": "Aranet (SAF Tehnika)",
+      "type": "Sensori Aranet di umidità del terreno: grado di saturazione (%)"
+    },
+    {
+      "instrument_id": "VAG_M2_ARANET",
+      "station_id": "VAG_M2",
+      "manufacturer": "Aranet (SAF Tehnika)",
+      "type": "Sensori Aranet di umidità del terreno: grado di saturazione (%)"
+    },
+    {
+      "instrument_id": "VAG_M3_ARANET",
+      "station_id": "VAG_M3",
+      "manufacturer": "Aranet (SAF Tehnika)",
+      "type": "Sensori Aranet di umidità del terreno: grado di saturazione (%)"
+    },
+    {
+      "instrument_id": "VAG_PZ1_ARANET",
+      "station_id": "VAG_PZ1",
+      "manufacturer": "Aranet (SAF Tehnika)",
+      "type": "Trasduttore di livello 4–20 mA (fondo scala 500 cm) su nodo Aranet"
+    },
+    {
+      "instrument_id": "VAG_PZ2_ARANET",
+      "station_id": "VAG_PZ2",
+      "manufacturer": "Aranet (SAF Tehnika)",
+      "type": "Trasduttore di livello 4–20 mA (fondo scala 500 cm) su nodo Aranet"
+    },
+    {
+      "instrument_id": "VAG_PZ3_ARANET",
+      "station_id": "VAG_PZ3",
+      "manufacturer": "Aranet (SAF Tehnika)",
+      "type": "Trasduttore di livello 4–20 mA (fondo scala 500 cm) su nodo Aranet"
+    },
+    {
+      "instrument_id": "VAG_PZ4_ARANET",
+      "station_id": "VAG_PZ4",
+      "manufacturer": "Aranet (SAF Tehnika)",
+      "type": "Trasduttore di livello 4–20 mA (fondo scala 500 cm) su nodo Aranet"
     }
   ],
   "series": [
@@ -1788,6 +1984,2595 @@
         "n_bad": 0,
         "duplicates_removed": 15
       }
+    },
+    {
+      "series_id": "VAG_C1_SR_012",
+      "instrument_id": "VAG_C1_ARANET",
+      "station_id": "VAG_C1",
+      "variable": "sr",
+      "depth_m": 0.12,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "0052E",
+      "sensor_name": "C1A12",
+      "sensor_group": "CHIESA",
+      "label": "Grado di saturazione del terreno 12 cm – Vaglio – Chiesa, verticale C1",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:00+01:00",
+      "end": "2025-06-05T13:08+01:00",
+      "n_values": 597339,
+      "min": 44.8,
+      "max": 99.1,
+      "valid_start": "2024-01-01T00:00+01:00",
+      "valid_end": "2025-06-05T13:08+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:54+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:36+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:22+01:00",
+          "to": "2025-01-01T00:01+01:00",
+          "hours": 323.6
+        },
+        {
+          "from": "2025-03-18T10:07+01:00",
+          "to": "2025-04-04T08:27+01:00",
+          "hours": 406.3
+        }
+      ],
+      "qc_notes": [
+        "Registrazioni terminate il 5 giugno 2025 (foglio vuoto nelle esportazioni successive).",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "6600 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0050F_0052E_00552_00554_00567_00569__2024-01-01-2024-12-18__chiesa.xlsx",
+          "sheet": "C1A12(0052E-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 422058
+        },
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "C1A12(0052E_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 181881
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_C1_SR_012/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_C1_SR_012_1h.csv",
+        "agg_1d": "data/agg/VAG_C1_SR_012_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 597339,
+        "n_valid": 597339,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 6600
+      }
+    },
+    {
+      "series_id": "VAG_C1_SR_040",
+      "instrument_id": "VAG_C1_ARANET",
+      "station_id": "VAG_C1",
+      "variable": "sr",
+      "depth_m": 0.4,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00554",
+      "sensor_name": "C1A40",
+      "sensor_group": "CHIESA",
+      "label": "Grado di saturazione del terreno 40 cm – Vaglio – Chiesa, verticale C1",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-05-01T15:57+01:00",
+      "end": "2025-11-09T19:51+01:00",
+      "n_values": 309790,
+      "min": 72.4,
+      "max": 100.0,
+      "valid_start": "2024-05-01T15:57+01:00",
+      "valid_end": "2025-11-09T19:51+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-05-18T14:21+01:00",
+          "to": "2024-05-24T13:54+01:00",
+          "hours": 143.6
+        },
+        {
+          "from": "2024-08-07T15:00+01:00",
+          "to": "2024-08-20T12:06+01:00",
+          "hours": 309.1
+        },
+        {
+          "from": "2024-08-28T16:03+01:00",
+          "to": "2024-09-06T14:58+01:00",
+          "hours": 214.9
+        },
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2025-05-04T15:20+01:00",
+          "hours": 4875.3
+        },
+        {
+          "from": "2025-05-16T19:04+01:00",
+          "to": "2025-05-30T14:07+01:00",
+          "hours": 331.1
+        },
+        {
+          "from": "2025-06-05T13:08+01:00",
+          "to": "2025-08-31T10:02+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Dati solo da maggio a ottobre 2024 e da maggio a novembre 2025.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "3706 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0050F_0052E_00552_00554_00567_00569__2024-01-01-2024-12-18__chiesa.xlsx",
+          "sheet": "C1A40(00554-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 191309
+        },
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "C1A40(00554_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 122187
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_C1_SR_040/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_C1_SR_040_1h.csv",
+        "agg_1d": "data/agg/VAG_C1_SR_040_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 309790,
+        "n_valid": 309790,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 3706
+      }
+    },
+    {
+      "series_id": "VAG_C1_SR_060",
+      "instrument_id": "VAG_C1_ARANET",
+      "station_id": "VAG_C1",
+      "variable": "sr",
+      "depth_m": 0.6,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00552",
+      "sensor_name": "C1A60",
+      "sensor_group": "CHIESA",
+      "label": "Grado di saturazione del terreno 60 cm – Vaglio – Chiesa, verticale C1",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:01+01:00",
+      "end": "2026-04-13T10:01+01:00",
+      "n_values": 917770,
+      "min": 62.3,
+      "max": 100.0,
+      "valid_start": "2024-01-01T00:01+01:00",
+      "valid_end": "2026-04-13T10:01+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:22+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.6
+        },
+        {
+          "from": "2025-03-18T10:07+01:00",
+          "to": "2025-04-04T08:27+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:07+01:00",
+          "to": "2025-08-31T10:01+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "12269 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0050F_0052E_00552_00554_00567_00569__2024-01-01-2024-12-18__chiesa.xlsx",
+          "sheet": "C1A60(00552-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 422290
+        },
+        {
+          "file": "Sensor_data_0050F_0052E_00552_00567_00569__2025-11-30-2026-04-13_.xlsx",
+          "sheet": "C1A60(00552_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 189533
+        },
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "C1A60(00552_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 318216
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_C1_SR_060/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_C1_SR_060_1h.csv",
+        "agg_1d": "data/agg/VAG_C1_SR_060_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 917770,
+        "n_valid": 917770,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 12269
+      }
+    },
+    {
+      "series_id": "VAG_C2_SR_012",
+      "instrument_id": "VAG_C2_ARANET",
+      "station_id": "VAG_C2",
+      "variable": "sr",
+      "depth_m": 0.12,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "0050F",
+      "sensor_name": "C2A12",
+      "sensor_group": "CHIESA",
+      "label": "Grado di saturazione del terreno 12 cm – Vaglio – Chiesa, verticale C2",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-29T12:34+01:00",
+      "end": "2024-12-18T12:21+01:00",
+      "n_values": 358090,
+      "min": 0.0,
+      "max": 83.7,
+      "valid_start": "2024-01-29T12:34+01:00",
+      "valid_end": "2024-12-18T12:21+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:54+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:36+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        }
+      ],
+      "qc_notes": [
+        "Lunghi periodi con valori prossimi a 0 % (es. febbraio–aprile 2024), segnalati come sospetti (flag 1). Il sensore non registra più dal 18 dicembre 2024 (foglio vuoto nelle esportazioni 2025–2026).",
+        "I sensori della verticale C2 hanno oscillazioni molto ampie anche nell'arco di un giorno (escursione giornaliera mediana 16–36 punti %, contro 1–5 delle altre verticali) e cadute improvvise verso valori bassi: andamento probabilmente dovuto al sensore (contatto o collegamento), da interpretare con cautela.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "4550 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0050F_0052E_00552_00554_00567_00569__2024-01-01-2024-12-18__chiesa.xlsx",
+          "sheet": "C2A12(0050F-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 362640
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_C2_SR_012/{year}.csv",
+        "years": [
+          2024
+        ],
+        "agg_1h": "data/agg/VAG_C2_SR_012_1h.csv",
+        "agg_1d": "data/agg/VAG_C2_SR_012_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 358090,
+        "n_valid": 331597,
+        "n_suspect": 26493,
+        "n_bad": 0,
+        "duplicates_removed": 4550
+      }
+    },
+    {
+      "series_id": "VAG_C2_SR_040",
+      "instrument_id": "VAG_C2_ARANET",
+      "station_id": "VAG_C2",
+      "variable": "sr",
+      "depth_m": 0.4,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00567",
+      "sensor_name": "C2A40",
+      "sensor_group": "CHIESA",
+      "label": "Grado di saturazione del terreno 40 cm – Vaglio – Chiesa, verticale C2",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-29T12:30+01:00",
+      "end": "2026-03-01T12:11+01:00",
+      "n_values": 796239,
+      "min": 0.0,
+      "max": 100.0,
+      "valid_start": "2024-01-29T12:30+01:00",
+      "valid_end": "2026-03-01T12:11+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:21+01:00",
+          "to": "2025-01-01T00:01+01:00",
+          "hours": 323.7
+        },
+        {
+          "from": "2025-03-18T10:07+01:00",
+          "to": "2025-04-04T08:27+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:07+01:00",
+          "to": "2025-08-31T10:02+01:00",
+          "hours": 2084.9
+        },
+        {
+          "from": "2026-02-10T15:29+01:00",
+          "to": "2026-02-12T10:37+01:00",
+          "hours": 43.1
+        },
+        {
+          "from": "2026-02-12T12:53+01:00",
+          "to": "2026-02-14T10:24+01:00",
+          "hours": 45.5
+        },
+        {
+          "from": "2026-02-14T14:08+01:00",
+          "to": "2026-02-16T13:30+01:00",
+          "hours": 47.4
+        },
+        {
+          "from": "2026-02-16T13:51+01:00",
+          "to": "2026-02-18T11:17+01:00",
+          "hours": 45.4
+        },
+        {
+          "from": "2026-02-20T13:42+01:00",
+          "to": "2026-02-23T10:18+01:00",
+          "hours": 68.6
+        },
+        {
+          "from": "2026-02-24T14:37+01:00",
+          "to": "2026-02-26T12:12+01:00",
+          "hours": 45.6
+        },
+        {
+          "from": "2026-02-27T14:11+01:00",
+          "to": "2026-03-01T12:11+01:00",
+          "hours": 46.0
+        }
+      ],
+      "qc_notes": [
+        "I sensori della verticale C2 hanno oscillazioni molto ampie anche nell'arco di un giorno (escursione giornaliera mediana 16–36 punti %, contro 1–5 delle altre verticali) e cadute improvvise verso valori bassi: andamento probabilmente dovuto al sensore (contatto o collegamento), da interpretare con cautela.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "10079 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0050F_0052E_00552_00554_00567_00569__2024-01-01-2024-12-18__chiesa.xlsx",
+          "sheet": "C2A40(00567-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 383777
+        },
+        {
+          "file": "Sensor_data_0050F_0052E_00552_00567_00569__2025-11-30-2026-04-13_.xlsx",
+          "sheet": "C2A40(00567_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 95735
+        },
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "C2A40(00567_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 326806
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_C2_SR_040/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_C2_SR_040_1h.csv",
+        "agg_1d": "data/agg/VAG_C2_SR_040_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 796239,
+        "n_valid": 796119,
+        "n_suspect": 120,
+        "n_bad": 0,
+        "duplicates_removed": 10079
+      }
+    },
+    {
+      "series_id": "VAG_C2_SR_070",
+      "instrument_id": "VAG_C2_ARANET",
+      "station_id": "VAG_C2",
+      "variable": "sr",
+      "depth_m": 0.7,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00569",
+      "sensor_name": "C2A70",
+      "sensor_group": "CHIESA",
+      "label": "Grado di saturazione del terreno 70 cm – Vaglio – Chiesa, verticale C2",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-29T12:36+01:00",
+      "end": "2026-01-06T12:39+01:00",
+      "n_values": 708189,
+      "min": 0.0,
+      "max": 90.7,
+      "valid_start": "2024-01-29T12:36+01:00",
+      "valid_end": "2026-01-06T12:39+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T11:59+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:21+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.6
+        },
+        {
+          "from": "2025-03-18T10:08+01:00",
+          "to": "2025-04-04T08:26+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:08+01:00",
+          "to": "2025-08-31T10:01+01:00",
+          "hours": 2084.9
+        },
+        {
+          "from": "2025-11-27T16:03+01:00",
+          "to": "2025-11-29T09:32+01:00",
+          "hours": 41.5
+        },
+        {
+          "from": "2025-12-12T14:27+01:00",
+          "to": "2025-12-14T10:09+01:00",
+          "hours": 43.7
+        },
+        {
+          "from": "2025-12-15T15:30+01:00",
+          "to": "2025-12-17T07:57+01:00",
+          "hours": 40.5
+        },
+        {
+          "from": "2025-12-19T13:24+01:00",
+          "to": "2026-01-06T11:19+01:00",
+          "hours": 429.9
+        }
+      ],
+      "qc_notes": [
+        "I sensori della verticale C2 hanno oscillazioni molto ampie anche nell'arco di un giorno (escursione giornaliera mediana 16–36 punti %, contro 1–5 delle altre verticali) e cadute improvvise verso valori bassi: andamento probabilmente dovuto al sensore (contatto o collegamento), da interpretare con cautela.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "8806 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0050F_0052E_00552_00554_00567_00569__2024-01-01-2024-12-18__chiesa.xlsx",
+          "sheet": "C2A70(00569-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 385251
+        },
+        {
+          "file": "Sensor_data_0050F_0052E_00552_00567_00569__2025-11-30-2026-04-13_.xlsx",
+          "sheet": "C2A70(00569_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 9183
+        },
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "C2A70(00569_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 322561
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_C2_SR_070/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_C2_SR_070_1h.csv",
+        "agg_1d": "data/agg/VAG_C2_SR_070_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 708189,
+        "n_valid": 708180,
+        "n_suspect": 9,
+        "n_bad": 0,
+        "duplicates_removed": 8806
+      }
+    },
+    {
+      "series_id": "VAG_M1_SR_012",
+      "instrument_id": "VAG_M1_ARANET",
+      "station_id": "VAG_M1",
+      "variable": "sr",
+      "depth_m": 0.12,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "0054F",
+      "sensor_name": "M1A12",
+      "sensor_group": "MUSEO",
+      "label": "Grado di saturazione del terreno 12 cm – Vaglio – Museo, verticale M1",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:00+01:00",
+      "end": "2025-04-22T01:10+01:00",
+      "n_values": 461940,
+      "min": 46.9,
+      "max": 93.5,
+      "valid_start": "2024-01-01T00:00+01:00",
+      "valid_end": "2025-04-22T01:10+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:07+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:28+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.5
+        },
+        {
+          "from": "2025-01-28T17:49+01:00",
+          "to": "2025-01-31T12:54+01:00",
+          "hours": 67.1
+        },
+        {
+          "from": "2025-01-31T14:14+01:00",
+          "to": "2025-03-16T01:10+01:00",
+          "hours": 1042.9
+        },
+        {
+          "from": "2025-03-16T16:46+01:00",
+          "to": "2025-04-07T02:40+01:00",
+          "hours": 513.9
+        },
+        {
+          "from": "2025-04-07T02:41+01:00",
+          "to": "2025-04-18T01:50+01:00",
+          "hours": 263.1
+        },
+        {
+          "from": "2025-04-18T20:46+01:00",
+          "to": "2025-04-21T04:45+01:00",
+          "hours": 56.0
+        }
+      ],
+      "qc_notes": [
+        "Registrazioni regolari fino a gennaio 2025, poi sporadiche fino al 22 aprile 2025.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "5777 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0054F_00553_00565__2024-01-01-2024-12-18__museo.xlsx",
+          "sheet": "M1A12(0054F-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 427748
+        },
+        {
+          "file": "Sensor_data_0054F_00553_00565__2025-01-01-2025-12-01__MUSEO.xlsx",
+          "sheet": "M1A12(0054F_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 39969
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M1_SR_012/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_M1_SR_012_1h.csv",
+        "agg_1d": "data/agg/VAG_M1_SR_012_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 461940,
+        "n_valid": 461940,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 5777
+      }
+    },
+    {
+      "series_id": "VAG_M1_SR_040",
+      "instrument_id": "VAG_M1_ARANET",
+      "station_id": "VAG_M1",
+      "variable": "sr",
+      "depth_m": 0.4,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00553",
+      "sensor_name": "M1A40",
+      "sensor_group": "MUSEO",
+      "label": "Grado di saturazione del terreno 40 cm – Vaglio – Museo, verticale M1",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:00+01:00",
+      "end": "2025-04-30T03:01+01:00",
+      "n_values": 492983,
+      "min": 56.1,
+      "max": 97.4,
+      "valid_start": "2024-01-01T00:00+01:00",
+      "valid_end": "2025-04-30T03:01+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:54+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:36+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:29+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.5
+        },
+        {
+          "from": "2025-02-24T13:10+01:00",
+          "to": "2025-03-01T09:34+01:00",
+          "hours": 116.4
+        },
+        {
+          "from": "2025-03-01T11:34+01:00",
+          "to": "2025-03-05T09:29+01:00",
+          "hours": 93.9
+        },
+        {
+          "from": "2025-03-07T09:13+01:00",
+          "to": "2025-03-09T10:04+01:00",
+          "hours": 48.9
+        },
+        {
+          "from": "2025-03-10T14:05+01:00",
+          "to": "2025-03-14T08:58+01:00",
+          "hours": 90.9
+        },
+        {
+          "from": "2025-03-14T11:46+01:00",
+          "to": "2025-04-07T07:07+01:00",
+          "hours": 571.4
+        },
+        {
+          "from": "2025-04-07T07:07+01:00",
+          "to": "2025-04-19T01:29+01:00",
+          "hours": 282.4
+        },
+        {
+          "from": "2025-04-19T01:31+01:00",
+          "to": "2025-04-24T00:01+01:00",
+          "hours": 118.5
+        },
+        {
+          "from": "2025-04-24T00:01+01:00",
+          "to": "2025-04-26T02:40+01:00",
+          "hours": 50.6
+        },
+        {
+          "from": "2025-04-26T02:44+01:00",
+          "to": "2025-04-30T02:59+01:00",
+          "hours": 96.2
+        }
+      ],
+      "qc_notes": [
+        "Registrazioni regolari fino a febbraio 2025, poi sporadiche fino al 30 aprile 2025.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "5332 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0054F_00553_00565__2024-01-01-2024-12-18__museo.xlsx",
+          "sheet": "M1A40(00553-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 428126
+        },
+        {
+          "file": "Sensor_data_0054F_00553_00565__2025-01-01-2025-12-01__MUSEO.xlsx",
+          "sheet": "M1A40(00553_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 70189
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M1_SR_040/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_M1_SR_040_1h.csv",
+        "agg_1d": "data/agg/VAG_M1_SR_040_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 492983,
+        "n_valid": 492983,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 5332
+      }
+    },
+    {
+      "series_id": "VAG_M1_SR_060",
+      "instrument_id": "VAG_M1_ARANET",
+      "station_id": "VAG_M1",
+      "variable": "sr",
+      "depth_m": 0.6,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00565",
+      "sensor_name": "M1A60",
+      "sensor_group": "MUSEO",
+      "label": "Grado di saturazione del terreno 60 cm – Vaglio – Museo, verticale M1",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:00+01:00",
+      "end": "2026-04-13T10:08+01:00",
+      "n_values": 910773,
+      "min": 0.3,
+      "max": 100.0,
+      "valid_start": "2024-01-01T00:00+01:00",
+      "valid_end": "2026-04-13T10:08+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-04-25T12:51+01:00",
+          "to": "2024-04-27T07:20+01:00",
+          "hours": 42.5
+        },
+        {
+          "from": "2024-04-30T12:20+01:00",
+          "to": "2024-05-09T02:04+01:00",
+          "hours": 205.7
+        },
+        {
+          "from": "2024-05-09T02:48+01:00",
+          "to": "2024-05-10T09:21+01:00",
+          "hours": 30.6
+        },
+        {
+          "from": "2024-06-21T03:16+01:00",
+          "to": "2024-06-22T14:38+01:00",
+          "hours": 35.4
+        },
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:54+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:36+01:00",
+          "to": "2024-12-05T10:07+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:29+01:00",
+          "to": "2025-01-01T00:01+01:00",
+          "hours": 323.5
+        },
+        {
+          "from": "2025-03-18T10:08+01:00",
+          "to": "2025-04-04T08:27+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:08+01:00",
+          "to": "2025-08-31T10:02+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Dal 22 giugno 2024 (ripresa dopo una lacuna) l'andamento cambia: valori più bassi (circa 55 %) e molto rumorosi, con oscillazioni settimanali fino a 50–90 punti %; da interpretare con cautela.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "12563 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data0054F00553005652025-11-30-2026-04-13.xlsx",
+          "sheet": "M1A60(00565_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 193071
+        },
+        {
+          "file": "Sensor_data_0054F_00553_00565__2024-01-01-2024-12-18__museo.xlsx",
+          "sheet": "M1A60(00565-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 400457
+        },
+        {
+          "file": "Sensor_data_0054F_00553_00565__2025-01-01-2025-12-01__MUSEO.xlsx",
+          "sheet": "M1A60(00565_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 329808
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M1_SR_060/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_M1_SR_060_1h.csv",
+        "agg_1d": "data/agg/VAG_M1_SR_060_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 910773,
+        "n_valid": 910696,
+        "n_suspect": 77,
+        "n_bad": 0,
+        "duplicates_removed": 12563
+      }
+    },
+    {
+      "series_id": "VAG_M2_SR_012",
+      "instrument_id": "VAG_M2_ARANET",
+      "station_id": "VAG_M2",
+      "variable": "sr",
+      "depth_m": 0.12,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "0051D",
+      "sensor_name": "M2A12",
+      "sensor_group": "VILLA MUSEO",
+      "label": "Grado di saturazione del terreno 12 cm – Vaglio – Villa Museo, verticale M2",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:01+01:00",
+      "end": "2026-04-13T10:03+01:00",
+      "n_values": 915436,
+      "min": 46.1,
+      "max": 95.5,
+      "valid_start": "2024-01-01T00:01+01:00",
+      "valid_end": "2026-04-13T10:03+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-05-01T13:47+01:00",
+          "to": "2024-05-10T09:55+01:00",
+          "hours": 212.1
+        },
+        {
+          "from": "2024-10-13T11:59+01:00",
+          "to": "2024-11-10T18:54+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:36+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:25+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.6
+        },
+        {
+          "from": "2025-03-18T10:07+01:00",
+          "to": "2025-04-04T08:26+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:07+01:00",
+          "to": "2025-08-31T10:01+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "11594 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2024-01-01-2024-12-18__villa_museo_1.xlsx",
+          "sheet": "M2A12(0051D-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 403488
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-01-01-2025-12-01__villa_museo__1.xlsx",
+          "sheet": "M2A12(0051D_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 330364
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-11-30-2026-04-13_.xlsx",
+          "sheet": "M2A12(0051D_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 193178
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M2_SR_012/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_M2_SR_012_1h.csv",
+        "agg_1d": "data/agg/VAG_M2_SR_012_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 915436,
+        "n_valid": 915436,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 11594
+      }
+    },
+    {
+      "series_id": "VAG_M2_SR_020",
+      "instrument_id": "VAG_M2_ARANET",
+      "station_id": "VAG_M2",
+      "variable": "sr",
+      "depth_m": 0.2,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00561",
+      "sensor_name": "M2A20",
+      "sensor_group": "VILLA MUSEO",
+      "label": "Grado di saturazione del terreno 20 cm – Vaglio – Villa Museo, verticale M2",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:01+01:00",
+      "end": "2026-04-13T10:03+01:00",
+      "n_values": 938406,
+      "min": 60.1,
+      "max": 97.6,
+      "valid_start": "2024-01-01T00:01+01:00",
+      "valid_end": "2026-04-13T10:03+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:54+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:36+01:00",
+          "to": "2024-12-05T10:07+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:26+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.6
+        },
+        {
+          "from": "2025-03-18T10:08+01:00",
+          "to": "2025-04-04T08:27+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:07+01:00",
+          "to": "2025-08-31T10:02+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "13273 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2024-01-01-2024-12-18__villa_museo_1.xlsx",
+          "sheet": "M2A20(00561-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 428239
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-01-01-2025-12-01__villa_museo__1.xlsx",
+          "sheet": "M2A20(00561_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 330267
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-11-30-2026-04-13_.xlsx",
+          "sheet": "M2A20(00561_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 193173
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M2_SR_020/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_M2_SR_020_1h.csv",
+        "agg_1d": "data/agg/VAG_M2_SR_020_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 938406,
+        "n_valid": 938406,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 13273
+      }
+    },
+    {
+      "series_id": "VAG_M2_SR_040",
+      "instrument_id": "VAG_M2_ARANET",
+      "station_id": "VAG_M2",
+      "variable": "sr",
+      "depth_m": 0.4,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "0054C",
+      "sensor_name": "M2A40",
+      "sensor_group": "VILLA MUSEO",
+      "label": "Grado di saturazione del terreno 40 cm – Vaglio – Villa Museo, verticale M2",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:00+01:00",
+      "end": "2026-04-13T10:03+01:00",
+      "n_values": 910892,
+      "min": 76.8,
+      "max": 100.0,
+      "valid_start": "2024-01-01T00:00+01:00",
+      "valid_end": "2026-04-13T10:03+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-04-18T18:52+01:00",
+          "to": "2024-04-20T08:35+01:00",
+          "hours": 37.7
+        },
+        {
+          "from": "2024-04-20T14:39+01:00",
+          "to": "2024-04-22T10:55+01:00",
+          "hours": 44.3
+        },
+        {
+          "from": "2024-04-23T14:33+01:00",
+          "to": "2024-04-27T10:06+01:00",
+          "hours": 91.5
+        },
+        {
+          "from": "2024-04-30T16:09+01:00",
+          "to": "2024-05-10T09:57+01:00",
+          "hours": 233.8
+        },
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:07+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:25+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.6
+        },
+        {
+          "from": "2025-03-18T10:08+01:00",
+          "to": "2025-04-04T08:26+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:08+01:00",
+          "to": "2025-08-31T10:01+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "11412 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2024-01-01-2024-12-18__villa_museo_1.xlsx",
+          "sheet": "M2A40(0054C-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 399153
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-01-01-2025-12-01__villa_museo__1.xlsx",
+          "sheet": "M2A40(0054C_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 330143
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-11-30-2026-04-13_.xlsx",
+          "sheet": "M2A40(0054C_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 193008
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M2_SR_040/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_M2_SR_040_1h.csv",
+        "agg_1d": "data/agg/VAG_M2_SR_040_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 910892,
+        "n_valid": 910892,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 11412
+      }
+    },
+    {
+      "series_id": "VAG_M2_SR_060",
+      "instrument_id": "VAG_M2_ARANET",
+      "station_id": "VAG_M2",
+      "variable": "sr",
+      "depth_m": 0.6,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00566",
+      "sensor_name": "M2A60",
+      "sensor_group": "VILLA MUSEO",
+      "label": "Grado di saturazione del terreno 60 cm – Vaglio – Villa Museo, verticale M2",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:00+01:00",
+      "end": "2026-04-13T10:04+01:00",
+      "n_values": 931043,
+      "min": 68.4,
+      "max": 100.0,
+      "valid_start": "2024-01-01T00:00+01:00",
+      "valid_end": "2026-04-13T10:04+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-05-18T22:07+01:00",
+          "to": "2024-05-20T14:57+01:00",
+          "hours": 40.8
+        },
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:26+01:00",
+          "to": "2025-01-01T00:01+01:00",
+          "hours": 323.6
+        },
+        {
+          "from": "2025-03-18T10:07+01:00",
+          "to": "2025-04-04T08:27+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:07+01:00",
+          "to": "2025-08-31T10:02+01:00",
+          "hours": 2084.9
+        },
+        {
+          "from": "2025-10-16T08:04+01:00",
+          "to": "2025-10-19T15:01+01:00",
+          "hours": 79.0
+        }
+      ],
+      "qc_notes": [
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "11384 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2024-01-01-2024-12-18__villa_museo_1.xlsx",
+          "sheet": "M2A60(00566-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 425661
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-01-01-2025-12-01__villa_museo__1.xlsx",
+          "sheet": "M2A60(00566_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 323682
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-11-30-2026-04-13_.xlsx",
+          "sheet": "M2A60(00566_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 193084
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M2_SR_060/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_M2_SR_060_1h.csv",
+        "agg_1d": "data/agg/VAG_M2_SR_060_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 931043,
+        "n_valid": 931043,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 11384
+      }
+    },
+    {
+      "series_id": "VAG_M3_SR_012",
+      "instrument_id": "VAG_M3_ARANET",
+      "station_id": "VAG_M3",
+      "variable": "sr",
+      "depth_m": 0.12,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00551",
+      "sensor_name": "M3A12",
+      "sensor_group": "VILLA MUSEO",
+      "label": "Grado di saturazione del terreno 12 cm – Vaglio – Villa Museo, verticale M3",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:01+01:00",
+      "end": "2025-04-19T04:24+01:00",
+      "n_values": 472308,
+      "min": 33.3,
+      "max": 83.0,
+      "valid_start": "2024-01-01T00:01+01:00",
+      "valid_end": "2025-04-19T04:24+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:07+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:25+01:00",
+          "to": "2025-01-01T00:01+01:00",
+          "hours": 323.6
+        },
+        {
+          "from": "2025-02-06T14:33+01:00",
+          "to": "2025-03-04T02:00+01:00",
+          "hours": 611.5
+        },
+        {
+          "from": "2025-03-04T02:00+01:00",
+          "to": "2025-03-16T01:48+01:00",
+          "hours": 287.8
+        },
+        {
+          "from": "2025-03-16T01:48+01:00",
+          "to": "2025-04-07T18:26+01:00",
+          "hours": 544.6
+        },
+        {
+          "from": "2025-04-07T18:28+01:00",
+          "to": "2025-04-08T20:32+01:00",
+          "hours": 26.1
+        },
+        {
+          "from": "2025-04-08T20:33+01:00",
+          "to": "2025-04-18T01:15+01:00",
+          "hours": 220.7
+        },
+        {
+          "from": "2025-04-18T01:17+01:00",
+          "to": "2025-04-19T04:23+01:00",
+          "hours": 27.1
+        }
+      ],
+      "qc_notes": [
+        "Registrazioni terminate a febbraio 2025 (sporadiche fino al 19 aprile 2025).",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "5130 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2024-01-01-2024-12-18__villa_museo_1.xlsx",
+          "sheet": "M3A12(00551-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 427133
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-01-01-2025-12-01__villa_museo__1.xlsx",
+          "sheet": "M3A12(00551_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 50305
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M3_SR_012/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_M3_SR_012_1h.csv",
+        "agg_1d": "data/agg/VAG_M3_SR_012_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 472308,
+        "n_valid": 472308,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 5130
+      }
+    },
+    {
+      "series_id": "VAG_M3_SR_040",
+      "instrument_id": "VAG_M3_ARANET",
+      "station_id": "VAG_M3",
+      "variable": "sr",
+      "depth_m": 0.4,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "0051C",
+      "sensor_name": "M3A40",
+      "sensor_group": "VILLA MUSEO",
+      "label": "Grado di saturazione del terreno 40 cm – Vaglio – Villa Museo, verticale M3",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-01T00:00+01:00",
+      "end": "2026-03-16T05:29+01:00",
+      "n_values": 726561,
+      "min": 58.8,
+      "max": 100.0,
+      "valid_start": "2024-01-01T00:00+01:00",
+      "valid_end": "2026-03-16T05:29+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-03-01T01:12+01:00",
+          "to": "2024-03-03T12:44+01:00",
+          "hours": 59.5
+        },
+        {
+          "from": "2024-04-25T11:19+01:00",
+          "to": "2024-04-27T09:52+01:00",
+          "hours": 46.5
+        },
+        {
+          "from": "2024-04-30T15:33+01:00",
+          "to": "2024-05-10T10:02+01:00",
+          "hours": 234.5
+        },
+        {
+          "from": "2024-10-13T11:59+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:07+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:25+01:00",
+          "to": "2025-01-01T00:01+01:00",
+          "hours": 323.6
+        },
+        {
+          "from": "2025-01-11T20:25+01:00",
+          "to": "2025-01-18T07:43+01:00",
+          "hours": 155.3
+        },
+        {
+          "from": "2025-01-19T07:08+01:00",
+          "to": "2025-01-31T12:49+01:00",
+          "hours": 293.7
+        },
+        {
+          "from": "2025-02-05T05:41+01:00",
+          "to": "2025-02-06T13:39+01:00",
+          "hours": 32.0
+        },
+        {
+          "from": "2025-02-16T23:44+01:00",
+          "to": "2025-02-20T18:31+01:00",
+          "hours": 90.8
+        },
+        {
+          "from": "2025-03-18T10:07+01:00",
+          "to": "2025-04-18T11:28+01:00",
+          "hours": 745.4
+        },
+        {
+          "from": "2025-05-15T16:43+01:00",
+          "to": "2025-05-20T17:57+01:00",
+          "hours": 121.2
+        },
+        {
+          "from": "2025-06-05T13:07+01:00",
+          "to": "2025-08-31T10:01+01:00",
+          "hours": 2084.9
+        },
+        {
+          "from": "2025-12-04T03:37+01:00",
+          "to": "2025-12-05T05:31+01:00",
+          "hours": 25.9
+        },
+        {
+          "from": "2026-02-01T09:37+01:00",
+          "to": "2026-02-04T12:32+01:00",
+          "hours": 74.9
+        },
+        {
+          "from": "2026-02-06T02:21+01:00",
+          "to": "2026-03-03T15:00+01:00",
+          "hours": 612.6
+        },
+        {
+          "from": "2026-03-08T17:52+01:00",
+          "to": "2026-03-13T15:45+01:00",
+          "hours": 117.9
+        }
+      ],
+      "qc_notes": [
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "10355 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2024-01-01-2024-12-18__villa_museo_1.xlsx",
+          "sheet": "M3A40(0051C-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 394125
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-01-01-2025-12-01__villa_museo__1.xlsx",
+          "sheet": "M3A40(0051C_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 256239
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-11-30-2026-04-13_.xlsx",
+          "sheet": "M3A40(0051C_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 86552
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M3_SR_040/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_M3_SR_040_1h.csv",
+        "agg_1d": "data/agg/VAG_M3_SR_040_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 726561,
+        "n_valid": 726561,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 10355
+      }
+    },
+    {
+      "series_id": "VAG_M3_SR_060",
+      "instrument_id": "VAG_M3_ARANET",
+      "station_id": "VAG_M3",
+      "variable": "sr",
+      "depth_m": 0.6,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "0051A",
+      "sensor_name": "M3A60",
+      "sensor_group": "VILLA MUSEO",
+      "label": "Grado di saturazione del terreno 60 cm – Vaglio – Villa Museo, verticale M3",
+      "unit": "%",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-13T11:39+01:00",
+      "end": "2026-04-13T10:03+01:00",
+      "n_values": 545620,
+      "min": 31.5,
+      "max": 100.0,
+      "valid_start": "2024-01-13T11:39+01:00",
+      "valid_end": "2026-04-13T10:03+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-01-20T06:35+01:00",
+          "to": "2024-02-09T10:33+01:00",
+          "hours": 484.0
+        },
+        {
+          "from": "2024-02-29T08:07+01:00",
+          "to": "2024-03-28T18:37+01:00",
+          "hours": 682.5
+        },
+        {
+          "from": "2024-04-18T16:42+01:00",
+          "to": "2024-04-20T10:12+01:00",
+          "hours": 41.5
+        },
+        {
+          "from": "2024-04-20T14:15+01:00",
+          "to": "2024-04-22T13:12+01:00",
+          "hours": 47.0
+        },
+        {
+          "from": "2024-04-23T12:17+01:00",
+          "to": "2024-05-08T04:24+01:00",
+          "hours": 352.1
+        },
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:07+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-14T04:24+01:00",
+          "to": "2024-12-15T15:00+01:00",
+          "hours": 34.6
+        },
+        {
+          "from": "2024-12-18T12:25+01:00",
+          "to": "2025-01-01T14:27+01:00",
+          "hours": 338.0
+        },
+        {
+          "from": "2025-01-04T16:33+01:00",
+          "to": "2025-01-07T12:51+01:00",
+          "hours": 68.3
+        },
+        {
+          "from": "2025-01-11T20:41+01:00",
+          "to": "2025-02-11T13:49+01:00",
+          "hours": 737.1
+        },
+        {
+          "from": "2025-02-17T09:36+01:00",
+          "to": "2025-02-24T00:41+01:00",
+          "hours": 159.1
+        },
+        {
+          "from": "2025-03-18T10:07+01:00",
+          "to": "2025-04-22T10:37+01:00",
+          "hours": 840.5
+        },
+        {
+          "from": "2025-05-11T12:35+01:00",
+          "to": "2025-05-14T00:08+01:00",
+          "hours": 59.5
+        },
+        {
+          "from": "2025-05-14T17:24+01:00",
+          "to": "2025-05-24T07:41+01:00",
+          "hours": 230.3
+        },
+        {
+          "from": "2025-06-05T13:08+01:00",
+          "to": "2025-08-31T10:02+01:00",
+          "hours": 2084.9
+        },
+        {
+          "from": "2025-11-10T01:42+01:00",
+          "to": "2025-11-11T09:23+01:00",
+          "hours": 31.7
+        },
+        {
+          "from": "2025-11-21T12:09+01:00",
+          "to": "2025-11-23T23:48+01:00",
+          "hours": 59.6
+        },
+        {
+          "from": "2025-11-27T17:13+01:00",
+          "to": "2025-11-28T18:52+01:00",
+          "hours": 25.6
+        },
+        {
+          "from": "2025-11-28T19:16+01:00",
+          "to": "2025-11-30T12:42+01:00",
+          "hours": 41.4
+        },
+        {
+          "from": "2025-12-04T04:49+01:00",
+          "to": "2025-12-13T17:01+01:00",
+          "hours": 228.2
+        },
+        {
+          "from": "2026-01-10T05:54+01:00",
+          "to": "2026-03-26T15:24+01:00",
+          "hours": 1809.5
+        },
+        {
+          "from": "2026-04-06T04:12+01:00",
+          "to": "2026-04-09T01:54+01:00",
+          "hours": 69.7
+        }
+      ],
+      "qc_notes": [
+        "Dopo la lacuna di gennaio–marzo 2026 il valore riparte da circa 42 % (prima 93–100 %): salto non spiegato da piogge, da verificare (possibile spostamento o sostituzione del sensore).",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "6696 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2024-01-01-2024-12-18__villa_museo_1.xlsx",
+          "sheet": "M3A60(0051A-S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 304112
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-01-01-2025-12-01__villa_museo__1.xlsx",
+          "sheet": "M3A60(0051A_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 194752
+        },
+        {
+          "file": "Sensor_data_0051A_0051C_0051D_0054C_00551_00561_00566__2025-11-30-2026-04-13_.xlsx",
+          "sheet": "M3A60(0051A_S6)",
+          "column": "Volumetric water content (%)",
+          "n_values": 53452
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_M3_SR_060/{year}.csv",
+        "years": [
+          2024,
+          2025,
+          2026
+        ],
+        "agg_1h": "data/agg/VAG_M3_SR_060_1h.csv",
+        "agg_1d": "data/agg/VAG_M3_SR_060_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 545620,
+        "n_valid": 545620,
+        "n_suspect": 0,
+        "n_bad": 0,
+        "duplicates_removed": 6696
+      }
+    },
+    {
+      "series_id": "VAG_PZ1_GWL",
+      "instrument_id": "VAG_PZ1_ARANET",
+      "station_id": "VAG_PZ1",
+      "variable": "gwl",
+      "depth_m": null,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00C61",
+      "sensor_name": "PIEZOMETRO 1",
+      "sensor_group": "PIEZOMETRI",
+      "label": "Livello piezometrico (acqua sopra il sensore) – Vaglio – Piezometro 1",
+      "unit": "cm",
+      "aggregation": "mean",
+      "step_min": 10.0,
+      "start": "2024-02-10T10:24+01:00",
+      "end": "2025-12-01T13:12+01:00",
+      "n_values": 183280,
+      "min": -125.0,
+      "max": 15.25001,
+      "valid_start": "2024-02-10T10:24+01:00",
+      "valid_end": "2024-09-13T23:12+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:59+01:00",
+          "hours": 679.0
+        },
+        {
+          "from": "2024-11-10T19:29+01:00",
+          "to": "2024-12-05T10:11+01:00",
+          "hours": 590.7
+        },
+        {
+          "from": "2024-12-18T12:17+01:00",
+          "to": "2025-01-01T00:08+01:00",
+          "hours": 323.9
+        },
+        {
+          "from": "2025-03-18T10:03+01:00",
+          "to": "2025-04-04T08:31+01:00",
+          "hours": 406.5
+        },
+        {
+          "from": "2025-06-05T13:05+01:00",
+          "to": "2025-08-31T10:09+01:00",
+          "hours": 2085.1
+        }
+      ],
+      "qc_notes": [
+        "Passo 1 minuto fino al 10 maggio 2024, poi 10 minuti.",
+        "Fino ad agosto 2024 livello ≈ 0 cm (corrente ≈ 4,0 mA: nessuna acqua sopra il sensore), con un'unica risalita fino a 15 cm il 4 agosto 2024 pomeriggio, in coincidenza con un temporale (10,9 mm al pluviometro CFD). Dal 13 settembre 2024 avaria: dati errati (flag 2).",
+        "Nel 2025 la corrente resta sempre sotto 1,5 mA (fuori dal campo 4–20 mA): i piezometri non forniscono dati validi.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "1873 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "PIEZOMETRO 1(00C61_S5)",
+          "column": "Level (cm)",
+          "n_values": 33006
+        },
+        {
+          "file": "Sensor_data00C5A00C6100C6200C822024-01-01-2024-12-18_piezometri.xlsx",
+          "sheet": "PIEZOMETRO 1(00C61-S5)",
+          "column": "Level (cm)",
+          "n_values": 152147
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_PZ1_GWL/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_PZ1_GWL_1h.csv",
+        "agg_1d": "data/agg/VAG_PZ1_GWL_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 183280,
+        "n_valid": 144159,
+        "n_suspect": 0,
+        "n_bad": 39121,
+        "duplicates_removed": 1873
+      }
+    },
+    {
+      "series_id": "VAG_PZ1_ILOOP",
+      "instrument_id": "VAG_PZ1_ARANET",
+      "station_id": "VAG_PZ1",
+      "variable": "i_loop",
+      "depth_m": null,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00C61",
+      "sensor_name": "PIEZOMETRO 1",
+      "sensor_group": "PIEZOMETRI",
+      "label": "Corrente del sensore (4–20 mA) – Vaglio – Piezometro 1",
+      "unit": "mA",
+      "aggregation": "mean",
+      "step_min": 10.0,
+      "start": "2024-01-29T13:30+01:00",
+      "end": "2025-12-01T13:12+01:00",
+      "n_values": 200204,
+      "min": 0.0,
+      "max": 4.49,
+      "valid_start": "2024-01-29T13:30+01:00",
+      "valid_end": "2025-12-01T13:12+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:59+01:00",
+          "hours": 679.0
+        },
+        {
+          "from": "2024-11-10T19:29+01:00",
+          "to": "2024-12-05T10:11+01:00",
+          "hours": 590.7
+        },
+        {
+          "from": "2024-12-18T12:17+01:00",
+          "to": "2025-01-01T00:08+01:00",
+          "hours": 323.9
+        },
+        {
+          "from": "2025-03-18T10:03+01:00",
+          "to": "2025-04-04T08:31+01:00",
+          "hours": 406.5
+        },
+        {
+          "from": "2025-06-05T13:05+01:00",
+          "to": "2025-08-31T10:09+01:00",
+          "hours": 2085.1
+        }
+      ],
+      "qc_notes": [
+        "Passo 1 minuto fino al 10 maggio 2024, poi 10 minuti.",
+        "Nel 2025 la corrente resta sempre sotto 1,5 mA (fuori dal campo 4–20 mA): i piezometri non forniscono dati validi.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "1982 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "PIEZOMETRO 1(00C61_S5)",
+          "column": "Current (mA)",
+          "n_values": 33006
+        },
+        {
+          "file": "Sensor_data00C5A00C6100C6200C822024-01-01-2024-12-18_piezometri.xlsx",
+          "sheet": "PIEZOMETRO 1(00C61-S5)",
+          "column": "Current (mA)",
+          "n_values": 169180
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_PZ1_ILOOP/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_PZ1_ILOOP_1h.csv",
+        "agg_1d": "data/agg/VAG_PZ1_ILOOP_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 200204,
+        "n_valid": 161094,
+        "n_suspect": 39110,
+        "n_bad": 0,
+        "duplicates_removed": 1982
+      }
+    },
+    {
+      "series_id": "VAG_PZ2_GWL",
+      "instrument_id": "VAG_PZ2_ARANET",
+      "station_id": "VAG_PZ2",
+      "variable": "gwl",
+      "depth_m": null,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00C5A",
+      "sensor_name": "PIEZOMETRO 2",
+      "sensor_group": "PIEZOMETRI",
+      "label": "Livello piezometrico (acqua sopra il sensore) – Vaglio – Piezometro 2",
+      "unit": "cm",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-02-10T10:23+01:00",
+      "end": "2025-12-01T13:13+01:00",
+      "n_values": 691033,
+      "min": -123.8125,
+      "max": 126.7813,
+      "valid_start": null,
+      "valid_end": null,
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:07+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:18+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.7
+        },
+        {
+          "from": "2025-03-18T10:08+01:00",
+          "to": "2025-04-04T08:27+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:08+01:00",
+          "to": "2025-08-31T10:02+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Corrente fuori dal campo 4–20 mA (1–8 mA con oscillazioni rapide) già dal 30 gennaio 2024: tutti i livelli sono considerati errati (flag 2). La serie della corrente resta consultabile come diagnostica.",
+        "Nel 2025 la corrente resta sempre sotto 1,5 mA (fuori dal campo 4–20 mA): i piezometri non forniscono dati validi.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "8028 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "PIEZOMETRO 2(00C5A_S5)",
+          "column": "Level (cm)",
+          "n_values": 328894
+        },
+        {
+          "file": "Sensor_data00C5A00C6100C6200C822024-01-01-2024-12-18_piezometri.xlsx",
+          "sheet": "PIEZOMETRO 2(00C5A-S5)",
+          "column": "Level (cm)",
+          "n_values": 370167
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_PZ2_GWL/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_PZ2_GWL_1h.csv",
+        "agg_1d": "data/agg/VAG_PZ2_GWL_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 691033,
+        "n_valid": 0,
+        "n_suspect": 0,
+        "n_bad": 691033,
+        "duplicates_removed": 8028
+      }
+    },
+    {
+      "series_id": "VAG_PZ2_ILOOP",
+      "instrument_id": "VAG_PZ2_ARANET",
+      "station_id": "VAG_PZ2",
+      "variable": "i_loop",
+      "depth_m": null,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00C5A",
+      "sensor_name": "PIEZOMETRO 2",
+      "sensor_group": "PIEZOMETRI",
+      "label": "Corrente del sensore (4–20 mA) – Vaglio – Piezometro 2",
+      "unit": "mA",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-29T13:31+01:00",
+      "end": "2025-12-01T13:13+01:00",
+      "n_values": 707874,
+      "min": 0.04,
+      "max": 8.06,
+      "valid_start": "2024-01-29T13:31+01:00",
+      "valid_end": "2025-12-01T13:13+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:07+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:18+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.7
+        },
+        {
+          "from": "2025-03-18T10:08+01:00",
+          "to": "2025-04-04T08:27+01:00",
+          "hours": 406.3
+        },
+        {
+          "from": "2025-06-05T13:08+01:00",
+          "to": "2025-08-31T10:02+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Nel 2025 la corrente resta sempre sotto 1,5 mA (fuori dal campo 4–20 mA): i piezometri non forniscono dati validi.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "8214 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "PIEZOMETRO 2(00C5A_S5)",
+          "column": "Current (mA)",
+          "n_values": 328894
+        },
+        {
+          "file": "Sensor_data00C5A00C6100C6200C822024-01-01-2024-12-18_piezometri.xlsx",
+          "sheet": "PIEZOMETRO 2(00C5A-S5)",
+          "column": "Current (mA)",
+          "n_values": 387194
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_PZ2_ILOOP/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_PZ2_ILOOP_1h.csv",
+        "agg_1d": "data/agg/VAG_PZ2_ILOOP_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 707874,
+        "n_valid": 37095,
+        "n_suspect": 670779,
+        "n_bad": 0,
+        "duplicates_removed": 8214
+      }
+    },
+    {
+      "series_id": "VAG_PZ3_GWL",
+      "instrument_id": "VAG_PZ3_ARANET",
+      "station_id": "VAG_PZ3",
+      "variable": "gwl",
+      "depth_m": null,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00C62",
+      "sensor_name": "PIEZOMETRO 3",
+      "sensor_group": "PIEZOMETRI",
+      "label": "Livello piezometrico (acqua sopra il sensore) – Vaglio – Piezometro 3",
+      "unit": "cm",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2024-02-10T10:23+01:00",
+      "end": "2025-12-01T13:14+01:00",
+      "n_values": 241041,
+      "min": -125.0,
+      "max": 83.90625,
+      "valid_start": "2024-02-10T10:23+01:00",
+      "valid_end": "2024-09-19T23:07+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:56+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:36+01:00",
+          "to": "2024-12-05T10:09+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:18+01:00",
+          "to": "2025-01-01T00:02+01:00",
+          "hours": 323.7
+        },
+        {
+          "from": "2025-03-18T10:04+01:00",
+          "to": "2025-04-04T08:29+01:00",
+          "hours": 406.4
+        },
+        {
+          "from": "2025-06-05T13:05+01:00",
+          "to": "2025-08-31T10:01+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Passo 1 minuto fino al 10 maggio 2024, poi 5 minuti.",
+        "Unico piezometro con un segnale significativo: da febbraio a giugno 2024 livello fino a circa 60–84 cm sopra il sensore, poi 0 cm da luglio a settembre 2024. Dal 19 settembre 2024 avaria: dati errati (flag 2).",
+        "Nel 2025 la corrente resta sempre sotto 1,5 mA (fuori dal campo 4–20 mA): i piezometri non forniscono dati validi.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "1003 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "PIEZOMETRO 3(00C62_S5)",
+          "column": "Level (cm)",
+          "n_values": 65874
+        },
+        {
+          "file": "Sensor_data00C5A00C6100C6200C822024-01-01-2024-12-18_piezometri.xlsx",
+          "sheet": "PIEZOMETRO 3(00C62-S5)",
+          "column": "Level (cm)",
+          "n_values": 176170
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_PZ3_GWL/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_PZ3_GWL_1h.csv",
+        "agg_1d": "data/agg/VAG_PZ3_GWL_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 241041,
+        "n_valid": 164655,
+        "n_suspect": 0,
+        "n_bad": 76386,
+        "duplicates_removed": 1003
+      }
+    },
+    {
+      "series_id": "VAG_PZ3_ILOOP",
+      "instrument_id": "VAG_PZ3_ARANET",
+      "station_id": "VAG_PZ3",
+      "variable": "i_loop",
+      "depth_m": null,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00C62",
+      "sensor_name": "PIEZOMETRO 3",
+      "sensor_group": "PIEZOMETRI",
+      "label": "Corrente del sensore (4–20 mA) – Vaglio – Piezometro 3",
+      "unit": "mA",
+      "aggregation": "mean",
+      "step_min": 5.0,
+      "start": "2024-01-29T13:33+01:00",
+      "end": "2025-12-01T13:14+01:00",
+      "n_values": 257893,
+      "min": 0.0,
+      "max": 6.69,
+      "valid_start": "2024-01-29T13:33+01:00",
+      "valid_end": "2025-12-01T13:14+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:56+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:36+01:00",
+          "to": "2024-12-05T10:09+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:18+01:00",
+          "to": "2025-01-01T00:02+01:00",
+          "hours": 323.7
+        },
+        {
+          "from": "2025-03-18T10:04+01:00",
+          "to": "2025-04-04T08:29+01:00",
+          "hours": 406.4
+        },
+        {
+          "from": "2025-06-05T13:05+01:00",
+          "to": "2025-08-31T10:01+01:00",
+          "hours": 2084.9
+        }
+      ],
+      "qc_notes": [
+        "Passo 1 minuto fino al 10 maggio 2024, poi 5 minuti.",
+        "Nel 2025 la corrente resta sempre sotto 1,5 mA (fuori dal campo 4–20 mA): i piezometri non forniscono dati validi.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "1183 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "PIEZOMETRO 3(00C62_S5)",
+          "column": "Current (mA)",
+          "n_values": 65874
+        },
+        {
+          "file": "Sensor_data00C5A00C6100C6200C822024-01-01-2024-12-18_piezometri.xlsx",
+          "sheet": "PIEZOMETRO 3(00C62-S5)",
+          "column": "Current (mA)",
+          "n_values": 193202
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_PZ3_ILOOP/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_PZ3_ILOOP_1h.csv",
+        "agg_1d": "data/agg/VAG_PZ3_ILOOP_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 257893,
+        "n_valid": 183719,
+        "n_suspect": 74174,
+        "n_bad": 0,
+        "duplicates_removed": 1183
+      }
+    },
+    {
+      "series_id": "VAG_PZ4_GWL",
+      "instrument_id": "VAG_PZ4_ARANET",
+      "station_id": "VAG_PZ4",
+      "variable": "gwl",
+      "depth_m": null,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00C82",
+      "sensor_name": "PIEZOMETRO 4",
+      "sensor_group": "PIEZOMETRI",
+      "label": "Livello piezometrico (acqua sopra il sensore) – Vaglio – Piezometro 4",
+      "unit": "cm",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-02-10T10:22+01:00",
+      "end": "2025-09-12T14:55+01:00",
+      "n_values": 395959,
+      "min": -122.4063,
+      "max": 0.4687522,
+      "valid_start": "2024-02-10T10:22+01:00",
+      "valid_end": "2024-08-12T06:48+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:18+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.7
+        },
+        {
+          "from": "2025-01-23T17:40+01:00",
+          "to": "2025-01-25T11:28+01:00",
+          "hours": 41.8
+        },
+        {
+          "from": "2025-01-25T12:47+01:00",
+          "to": "2025-01-26T13:18+01:00",
+          "hours": 24.5
+        },
+        {
+          "from": "2025-01-28T12:06+01:00",
+          "to": "2025-02-10T15:09+01:00",
+          "hours": 315.1
+        },
+        {
+          "from": "2025-02-11T15:33+01:00",
+          "to": "2025-02-21T15:17+01:00",
+          "hours": 239.7
+        },
+        {
+          "from": "2025-02-22T15:41+01:00",
+          "to": "2025-02-24T15:14+01:00",
+          "hours": 47.5
+        },
+        {
+          "from": "2025-02-24T15:37+01:00",
+          "to": "2025-02-28T14:56+01:00",
+          "hours": 95.3
+        },
+        {
+          "from": "2025-02-28T15:15+01:00",
+          "to": "2025-03-05T14:58+01:00",
+          "hours": 119.7
+        },
+        {
+          "from": "2025-03-06T15:32+01:00",
+          "to": "2025-03-09T15:11+01:00",
+          "hours": 71.7
+        },
+        {
+          "from": "2025-03-09T15:28+01:00",
+          "to": "2025-03-14T14:40+01:00",
+          "hours": 119.2
+        },
+        {
+          "from": "2025-03-14T15:39+01:00",
+          "to": "2025-04-20T12:40+01:00",
+          "hours": 885.0
+        },
+        {
+          "from": "2025-04-20T14:05+01:00",
+          "to": "2025-06-03T10:52+01:00",
+          "hours": 1052.8
+        },
+        {
+          "from": "2025-06-05T13:08+01:00",
+          "to": "2025-09-01T13:47+01:00",
+          "hours": 2112.7
+        },
+        {
+          "from": "2025-09-01T14:57+01:00",
+          "to": "2025-09-06T14:22+01:00",
+          "hours": 119.4
+        },
+        {
+          "from": "2025-09-06T14:36+01:00",
+          "to": "2025-09-12T14:15+01:00",
+          "hours": 143.7
+        }
+      ],
+      "qc_notes": [
+        "Livello ≈ 0 cm (nessuna acqua sopra il sensore) fino all'11 agosto 2024; dal 12 agosto 2024 avaria: dati errati (flag 2). Registrazioni terminate il 12 settembre 2025.",
+        "Nel 2025 la corrente resta sempre sotto 1,5 mA (fuori dal campo 4–20 mA): i piezometri non forniscono dati validi.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "3727 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "PIEZOMETRO 4(00C82_S5)",
+          "column": "Level (cm)",
+          "n_values": 30633
+        },
+        {
+          "file": "Sensor_data00C5A00C6100C6200C822024-01-01-2024-12-18_piezometri.xlsx",
+          "sheet": "PIEZOMETRO 4(00C82-S5)",
+          "column": "Level (cm)",
+          "n_values": 369053
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_PZ4_GWL/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_PZ4_GWL_1h.csv",
+        "agg_1d": "data/agg/VAG_PZ4_GWL_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 395959,
+        "n_valid": 258995,
+        "n_suspect": 0,
+        "n_bad": 136964,
+        "duplicates_removed": 3727
+      }
+    },
+    {
+      "series_id": "VAG_PZ4_ILOOP",
+      "instrument_id": "VAG_PZ4_ARANET",
+      "station_id": "VAG_PZ4",
+      "variable": "i_loop",
+      "depth_m": null,
+      "sensor_model": "Aranet",
+      "logger_port": null,
+      "sensor_serial": "00C82",
+      "sensor_name": "PIEZOMETRO 4",
+      "sensor_group": "PIEZOMETRI",
+      "label": "Corrente del sensore (4–20 mA) – Vaglio – Piezometro 4",
+      "unit": "mA",
+      "aggregation": "mean",
+      "step_min": 1.0,
+      "start": "2024-01-29T13:34+01:00",
+      "end": "2025-09-12T14:55+01:00",
+      "n_values": 412800,
+      "min": 0.08,
+      "max": 4.02,
+      "valid_start": "2024-01-29T13:34+01:00",
+      "valid_end": "2025-09-12T14:55+01:00",
+      "status": "active",
+      "gaps_over_24h": [
+        {
+          "from": "2024-10-13T12:00+01:00",
+          "to": "2024-11-10T18:55+01:00",
+          "hours": 678.9
+        },
+        {
+          "from": "2024-11-10T19:37+01:00",
+          "to": "2024-12-05T10:08+01:00",
+          "hours": 590.5
+        },
+        {
+          "from": "2024-12-18T12:18+01:00",
+          "to": "2025-01-01T00:00+01:00",
+          "hours": 323.7
+        },
+        {
+          "from": "2025-01-23T17:40+01:00",
+          "to": "2025-01-25T11:28+01:00",
+          "hours": 41.8
+        },
+        {
+          "from": "2025-01-25T12:47+01:00",
+          "to": "2025-01-26T13:18+01:00",
+          "hours": 24.5
+        },
+        {
+          "from": "2025-01-28T12:06+01:00",
+          "to": "2025-02-10T15:09+01:00",
+          "hours": 315.1
+        },
+        {
+          "from": "2025-02-11T15:33+01:00",
+          "to": "2025-02-21T15:17+01:00",
+          "hours": 239.7
+        },
+        {
+          "from": "2025-02-22T15:41+01:00",
+          "to": "2025-02-24T15:14+01:00",
+          "hours": 47.5
+        },
+        {
+          "from": "2025-02-24T15:37+01:00",
+          "to": "2025-02-28T14:56+01:00",
+          "hours": 95.3
+        },
+        {
+          "from": "2025-02-28T15:15+01:00",
+          "to": "2025-03-05T14:58+01:00",
+          "hours": 119.7
+        },
+        {
+          "from": "2025-03-06T15:32+01:00",
+          "to": "2025-03-09T15:11+01:00",
+          "hours": 71.7
+        },
+        {
+          "from": "2025-03-09T15:28+01:00",
+          "to": "2025-03-14T14:40+01:00",
+          "hours": 119.2
+        },
+        {
+          "from": "2025-03-14T15:39+01:00",
+          "to": "2025-04-20T12:40+01:00",
+          "hours": 885.0
+        },
+        {
+          "from": "2025-04-20T14:05+01:00",
+          "to": "2025-06-03T10:52+01:00",
+          "hours": 1052.8
+        },
+        {
+          "from": "2025-06-05T13:08+01:00",
+          "to": "2025-09-01T13:47+01:00",
+          "hours": 2112.7
+        },
+        {
+          "from": "2025-09-01T14:57+01:00",
+          "to": "2025-09-06T14:22+01:00",
+          "hours": 119.4
+        },
+        {
+          "from": "2025-09-06T14:36+01:00",
+          "to": "2025-09-12T14:15+01:00",
+          "hours": 143.7
+        }
+      ],
+      "qc_notes": [
+        "Nel 2025 la corrente resta sempre sotto 1,5 mA (fuori dal campo 4–20 mA): i piezometri non forniscono dati validi.",
+        "Lacune comuni a tutti i sensori Aranet (interruzione della trasmissione, non dei singoli sensori): 24–25 marzo 2024, 13 ottobre – 5 dicembre 2024, 18–31 dicembre 2024 (periodo non esportato), 18 marzo – 4 aprile 2025, 5 giugno – 31 agosto 2025.",
+        "3828 timestamp duplicati (sovrapposizione tra esportazioni o arrotondamento al minuto): a parità di istante si usa l'esportazione più recente."
+      ],
+      "sources": [
+        {
+          "file": "Sensor_data_00C5A_00C61_00C62_00C82_0050F_0052E_00552_00554_00567_00569__2025-01-01-2025-12-01_PIEZOMETRI___CHIESA__1.xlsx",
+          "sheet": "PIEZOMETRO 4(00C82_S5)",
+          "column": "Current (mA)",
+          "n_values": 30633
+        },
+        {
+          "file": "Sensor_data00C5A00C6100C6200C822024-01-01-2024-12-18_piezometri.xlsx",
+          "sheet": "PIEZOMETRO 4(00C82-S5)",
+          "column": "Current (mA)",
+          "n_values": 385995
+        }
+      ],
+      "data": {
+        "format": "csv: time,value,flag",
+        "raw": "data/raw/VAG_PZ4_ILOOP/{year}.csv",
+        "years": [
+          2024,
+          2025
+        ],
+        "agg_1h": "data/agg/VAG_PZ4_ILOOP_1h.csv",
+        "agg_1d": "data/agg/VAG_PZ4_ILOOP_1d.csv"
+      },
+      "qc_summary": {
+        "n_total": 412800,
+        "n_valid": 290480,
+        "n_suspect": 122320,
+        "n_bad": 0,
+        "duplicates_removed": 3828
+      }
     }
   ],
   "qc_rules": {
@@ -1817,6 +4602,18 @@
       "t_air": {
         "min": -30.0,
         "max": 50.0
+      },
+      "sr": {
+        "min": 0.0,
+        "max": 100.0
+      },
+      "gwl": {
+        "min": -10.0,
+        "max": 500.0
+      },
+      "i_loop": {
+        "min": 0.0,
+        "max": 24.0
       }
     },
     "spike_by_series": {
@@ -1834,6 +4631,56 @@
         "window_minutes": 1440,
         "missing_minutes_threshold": 60
       }
-    }
+    },
+    "aranet": {
+      "_doc": "Sensori Aranet (ingest_aranet.py). Piezometri: livello (gwl) con corrente < loop_current_min_mA -> flag 2; corrente (i_loop) sotto soglia -> flag 1. Grado di saturazione (sr): picco isolato = scarto da entrambi i valori adiacenti (distanti al più max_gap_min minuti) > threshold punti %, con gli adiacenti entro neighbor_tolerance tra loro -> flag 1. Grado di saturazione <= sr_low_suspect % -> flag 1 (terreno completamente secco: non realistico, probabile perdita di contatto del sensore).",
+      "loop_current_min_mA": 3.8,
+      "spike_by_variable": {
+        "sr": {
+          "threshold": 10.0,
+          "neighbor_tolerance": 2.0,
+          "max_gap_min": 2
+        }
+      },
+      "sr_low_suspect": 1.0
+    },
+    "windows": [
+      {
+        "series": [
+          "VAG_PZ1_GWL"
+        ],
+        "from": "2024-09-13 23:22",
+        "to": "2099-12-31 23:59",
+        "flag": 2,
+        "reason": "Avaria del piezometro dal 2024-09-13: corrente scesa sotto 4 mA e mai più rientrata nel campo 4–20 mA"
+      },
+      {
+        "series": [
+          "VAG_PZ2_GWL"
+        ],
+        "from": "2024-01-01 00:00",
+        "to": "2099-12-31 23:59",
+        "flag": 2,
+        "reason": "Segnale del piezometro instabile e fuori scala quasi da subito (corrente 1–8 mA con oscillazioni rapide dal 2024-01-30): livelli non attendibili"
+      },
+      {
+        "series": [
+          "VAG_PZ3_GWL"
+        ],
+        "from": "2024-09-19 23:12",
+        "to": "2099-12-31 23:59",
+        "flag": 2,
+        "reason": "Avaria del piezometro dal 2024-09-19: corrente instabile (1,8–6,7 mA) poi sotto 4 mA"
+      },
+      {
+        "series": [
+          "VAG_PZ4_GWL"
+        ],
+        "from": "2024-08-12 06:49",
+        "to": "2099-12-31 23:59",
+        "flag": 2,
+        "reason": "Avaria del piezometro dal 2024-08-12: corrente sotto 4 mA, con rientri intermittenti fino al 2024-09-08"
+      }
+    ]
   }
 }

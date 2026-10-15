@@ -26,6 +26,18 @@
     "t_air": {
       "min": -30.0,
       "max": 50.0
+    },
+    "sr": {
+      "min": 0.0,
+      "max": 100.0
+    },
+    "gwl": {
+      "min": -10.0,
+      "max": 500.0
+    },
+    "i_loop": {
+      "min": 0.0,
+      "max": 24.0
     }
   },
   "spike_by_series": {
@@ -43,5 +55,55 @@
       "window_minutes": 1440,
       "missing_minutes_threshold": 60
     }
-  }
+  },
+  "aranet": {
+    "_doc": "Sensori Aranet (ingest_aranet.py). Piezometri: livello (gwl) con corrente < loop_current_min_mA -> flag 2; corrente (i_loop) sotto soglia -> flag 1. Grado di saturazione (sr): picco isolato = scarto da entrambi i valori adiacenti (distanti al più max_gap_min minuti) > threshold punti %, con gli adiacenti entro neighbor_tolerance tra loro -> flag 1. Grado di saturazione <= sr_low_suspect % -> flag 1 (terreno completamente secco: non realistico, probabile perdita di contatto del sensore).",
+    "loop_current_min_mA": 3.8,
+    "spike_by_variable": {
+      "sr": {
+        "threshold": 10.0,
+        "neighbor_tolerance": 2.0,
+        "max_gap_min": 2
+      }
+    },
+    "sr_low_suspect": 1.0
+  },
+  "windows": [
+    {
+      "series": [
+        "VAG_PZ1_GWL"
+      ],
+      "from": "2024-09-13 23:22",
+      "to": "2099-12-31 23:59",
+      "flag": 2,
+      "reason": "Avaria del piezometro dal 2024-09-13: corrente scesa sotto 4 mA e mai più rientrata nel campo 4–20 mA"
+    },
+    {
+      "series": [
+        "VAG_PZ2_GWL"
+      ],
+      "from": "2024-01-01 00:00",
+      "to": "2099-12-31 23:59",
+      "flag": 2,
+      "reason": "Segnale del piezometro instabile e fuori scala quasi da subito (corrente 1–8 mA con oscillazioni rapide dal 2024-01-30): livelli non attendibili"
+    },
+    {
+      "series": [
+        "VAG_PZ3_GWL"
+      ],
+      "from": "2024-09-19 23:12",
+      "to": "2099-12-31 23:59",
+      "flag": 2,
+      "reason": "Avaria del piezometro dal 2024-09-19: corrente instabile (1,8–6,7 mA) poi sotto 4 mA"
+    },
+    {
+      "series": [
+        "VAG_PZ4_GWL"
+      ],
+      "from": "2024-08-12 06:49",
+      "to": "2099-12-31 23:59",
+      "flag": 2,
+      "reason": "Avaria del piezometro dal 2024-08-12: corrente sotto 4 mA, con rientri intermittenti fino al 2024-09-08"
+    }
+  ]
 }
