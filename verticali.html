@@ -33,8 +33,6 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body)
 .crumb{margin:0 0 10px;font-size:13px}
 .crumb a,footer a{color:var(--ink2)}
 h1{font-family:var(--font-display);font-weight:600;font-size:clamp(26px,4.2vw,38px);line-height:1.1;margin:0;letter-spacing:-.01em;text-wrap:balance}
-.sub{color:var(--ink2);margin:6px 0 0;max-width:72ch;min-height:1.5em}
-.sub b{font-weight:600;color:var(--ink)}
 .panel{background:var(--surface);border:1px solid var(--grid);border-radius:6px;padding:16px}
 .filters{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -89,7 +87,6 @@ footer{color:var(--muted);font-size:12px;max-width:84ch}
   <header>
     <p class="crumb"><a href="./">← Portale dei dati di monitoraggio</a></p>
     <h1>Come si sposta l'acqua nel terreno</h1>
-    <p class="sub" id="sub">Carico i dati…</p>
   </header>
 
   <section class="panel filters" aria-label="Scelta dei dati">
@@ -153,7 +150,7 @@ var st={key:"VAG_S3",vk:"vwc",vars:{},stName:"",doc:null,V:null,A:[],depths:[],f
         lo:0,hi:1,log:false,ticks:[],tdec:0,base:[],empty:true};
 var pos=0,playing=false,speed=6,raf=0,lastT=0;
 var M={},S={};
-var def={from:"2025-01-18",to:"2025-01-20"};
+var def={from:"2025-01-01",to:"2025-12-31"};
 
 function $(id){return document.getElementById(id);}
 function el(p,tag,a,txt){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;if(p)p.appendChild(e);return e;}
@@ -327,10 +324,6 @@ function applyRange(){
       if(isNaN(lo)||v<lo)lo=v;if(isNaN(hi)||v>hi)hi=v;}}
     cov.push(c/Math.max(1,s1-s0+1));base.push(b);jmin.push(lo);jmax.push(hi);});
   st.base=base;st.jmin=jmin;st.jmax=jmax;st.empty=(st.L<1||vmax<vmin);
-  var sub=$("sub");sub.textContent="";
-  sub.appendChild(h("b",{},"Vaglio – "+st.stName));
-  sub.appendChild(document.createTextNode(". "+st.V.label+" ("+st.V.unit+")"+(st.V.sensor?", sensori "+st.V.sensor+" a "+st.depths.join(", ")+" cm":"")+
-    ", dal "+dlong(doc.t0+s0*HOUR)+" al "+dlong(doc.t0+s1*HOUR)+", medie orarie."));
   $("th-unit").textContent=(st.vk==="psi"?"|ψ| kPa":st.V.unit);
   var rn="Il profilo unisce con segmenti rettilinei i sensori che hanno un dato in quell'istante. Sopra e sotto i sensori non ci sono misure. Minimo e massimo del periodo sono calcolati per ogni profondità sul periodo scelto; minimo e massimo della serie di dati su tutti i dati disponibili per quella profondità (medie orarie). L'asse del profilo è esteso per mostrarli.";
   if(st.vk==="psi")rn+=" Il grafico mostra la suzione |ψ|, cioè il valore assoluto del potenziale matriciale, in scala logaritmica.";
@@ -563,7 +556,6 @@ fetch("catalog.json").then(function(r){if(!r.ok)throw new Error("catalog "+r.sta
 }).catch(function(e){
   if(window.console)console.error(e);
   showState("Non riesco a leggere i dati dal repository. Se apri il file dal disco, avvia un server nella cartella del repository (python -m http.server) e riprova.");
-  $("sub").textContent="";
 });
 })();
 </script>
