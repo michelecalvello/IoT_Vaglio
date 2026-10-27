@@ -114,7 +114,8 @@ footer{color:var(--muted);font-size:12px;max-width:84ch}
     <div class="panel">
       <div class="legend" aria-hidden="true">
         <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--ink)" stroke-width="2.5"/></svg>Profilo attuale</span>
-        <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="4 3" opacity=".55"/></svg>Primo dato del periodo</span>
+        <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--ink)" stroke-width="1.8" stroke-dasharray="7 3" opacity=".6"/></svg>Minimo del periodo</span>
+        <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--ink)" stroke-width="1.8" stroke-dasharray="2 3" opacity=".6"/></svg>Massimo del periodo</span>
         <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--ink)" stroke-width="1.6" opacity=".22"/></svg>Istanti appena trascorsi</span>
       </div>
       <div id="main"><div class="state">Carico i dati…</div></div>
@@ -309,17 +310,18 @@ function applyRange(){
   var s0=Math.round((Date.parse(f)-doc.t0)/HOUR),s1=Math.round((Date.parse(t)+23*HOUR-doc.t0)/HOUR);
   s0=Math.max(s0,st.fv);s1=Math.min(s1,st.lv);
   st.s0=s0;st.s1=s1;st.L=s1-s0;
-  var vmin=1e18,vmax=-1e18,cov=[],base=[];
-  st.A.forEach(function(a,j){var c=0,b=NaN;
-    for(var i=s0;i<=s1;i++){var v=a[i];if(!isNaN(v)){c++;if(isNaN(b))b=v;if(v<vmin)vmin=v;if(v>vmax)vmax=v;}}
-    cov.push(c/Math.max(1,s1-s0+1));base.push(b);});
-  st.base=base;st.empty=(st.L<1||vmax<vmin);
+  var vmin=1e18,vmax=-1e18,cov=[],base=[],jmin=[],jmax=[];
+  st.A.forEach(function(a,j){var c=0,b=NaN,lo=NaN,hi=NaN;
+    for(var i=s0;i<=s1;i++){var v=a[i];if(!isNaN(v)){c++;if(isNaN(b))b=v;if(v<vmin)vmin=v;if(v>vmax)vmax=v;
+      if(isNaN(lo)||v<lo)lo=v;if(isNaN(hi)||v>hi)hi=v;}}
+    cov.push(c/Math.max(1,s1-s0+1));base.push(b);jmin.push(lo);jmax.push(hi);});
+  st.base=base;st.jmin=jmin;st.jmax=jmax;st.empty=(st.L<1||vmax<vmin);
   var sub=$("sub");sub.textContent="";
   sub.appendChild(h("b",{},"Vaglio – "+st.stName));
   sub.appendChild(document.createTextNode(". "+st.V.label+" ("+st.V.unit+")"+(st.V.sensor?", sensori "+st.V.sensor+" a "+st.depths.join(", ")+" cm":"")+
     ", dal "+dlong(doc.t0+s0*HOUR)+" al "+dlong(doc.t0+s1*HOUR)+", medie orarie."));
   $("th-unit").textContent=(st.vk==="psi"?"|ψ| kPa":st.V.unit);
-  var rn="Il profilo unisce con segmenti rettilinei i sensori che hanno un dato in quell'istante. Sopra e sotto i sensori non ci sono misure.";
+  var rn="Il profilo unisce con segmenti rettilinei i sensori che hanno un dato in quell'istante. Sopra e sotto i sensori non ci sono misure. Minimo e massimo sono calcolati per ogni profondità su tutto il periodo scelto.";
   if(st.vk==="psi")rn+=" Il grafico mostra la suzione |ψ|, cioè il valore assoluto del potenziale matriciale, in scala logaritmica.";
   if(st.vk==="sr")rn+=" 100 % corrisponde al terreno saturo.";
   $("rnote").textContent=rn;
@@ -337,8 +339,7 @@ function applyRange(){
   speed=best;buildSpeeds();
   $("scrub").max=st.L;$("scrub").disabled=false;$("play").disabled=false;
   build();
-  var rm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  setPlaying(!rm);
+  setPlaying(false);   /* l'animazione parte solo con "Riproduci" */
 }
 
 /* ---------- grafico del profilo ---------- */
@@ -361,8 +362,9 @@ function buildMain(){
   var xt=st.vk==="psi"?"Suzione |ψ| (kPa, scala logaritmica)":st.V.label+" ("+st.V.unit+")";
   el(svg,"text",{x:(m.l+W-m.r)/2,y:H-8,"text-anchor":"middle","class":"ttl"},xt);
   var n=st.depths.length;
-  var sp=[];st.depths.forEach(function(d,j){if(!isNaN(st.base[j]))sp.push([X(st.base[j]),Y(d)]);});
-  el(svg,"path",{d:pathOf(sp),fill:"none",stroke:"var(--ink)","stroke-width":1.6,"stroke-dasharray":"4 3",opacity:.55,"stroke-linejoin":"round"});
+  [[st.jmin,"7 3"],[st.jmax,"2 3"]].forEach(function(e){
+    var ep=[];st.depths.forEach(function(d,j){if(!isNaN(e[0][j]))ep.push([X(e[0][j]),Y(d)]);});
+    el(svg,"path",{d:ep.length>1?pathOf(ep):"",fill:"none",stroke:"var(--ink)","stroke-width":1.8,"stroke-dasharray":e[1],opacity:.6,"stroke-linejoin":"round"});});
   M={svg:svg,X:X,Y:Y,W:W,H:H,m:m,trail:[],cur:null,dots:[],labs:[],msg:null};
   for(var k=0;k<6;k++)M.trail.push(el(svg,"path",{fill:"none",stroke:"var(--ink)","stroke-width":1.6,"stroke-linejoin":"round",opacity:0}));
   M.cur=el(svg,"path",{fill:"none",stroke:"var(--ink)","stroke-width":2.5,"stroke-linejoin":"round"});
