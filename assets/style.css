@@ -61,6 +61,9 @@ button { cursor: pointer; }
 button:hover { border-color: var(--text-2); }
 button.ghost { border-color: transparent; background: transparent; font-size: 18px; }
 button.link { border: 0; background: none; color: var(--accent); padding: 0; font-size: 12px; }
+a.navlink { color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+            padding: 5px 9px; text-decoration: none; }
+a.navlink:hover { border-color: var(--text-2); }
 
 .topbar {
   display: flex; align-items: center; justify-content: space-between;
