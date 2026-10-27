@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Verticali · Monitoraggio Vaglio di Basilicata</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap">
+<style>
+/* Layout: filtri in alto (verticale, grandezza, periodo); profilo verticale accanto alla lettura numerica; sotto, le serie nel tempo con pioggia e cursore. */
+:root{
+  --bg:#f3f6f7; --surface:#ffffff; --ink:#14232d; --ink2:#44586a; --muted:#6f8190;
+  --grid:#dfe7ec; --rule:#bccad3; --accent:#d2542a; --rain:#9db4c4;
+  --d0:#7cc0ee; --d1:#3f93cc; --d2:#1f65a3; --d3:#0b3b5e;
+  --font-display:"Newsreader",Georgia,"Times New Roman",serif;
+  --font-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-data:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1a21; --surface:#14232c; --ink:#e7eff4; --ink2:#a8bac6; --muted:#8195a2;
+  --grid:#22363f; --rule:#35505e; --accent:#ff8a5c; --rain:#4f6c7d;
+  --d0:#b4dcf4; --d1:#7fbbe6; --d2:#4f93cf; --d3:#3a78b5; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1a21; --surface:#14232c; --ink:#e7eff4; --ink2:#a8bac6; --muted:#8195a2;
+  --grid:#22363f; --rule:#35505e; --accent:#ff8a5c; --rain:#4f6c7d;
+  --d0:#b4dcf4; --d1:#7fbbe6; --d2:#4f93cf; --d3:#3a78b5; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:14px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 40px}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+.crumb{margin:0 0 10px;font-size:13px}
+.crumb a,footer a{color:var(--ink2)}
+h1{font-family:var(--font-display);font-weight:600;font-size:clamp(26px,4.2vw,38px);line-height:1.1;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--ink2);margin:6px 0 0;max-width:72ch;min-height:1.5em}
+.sub b{font-weight:600;color:var(--ink)}
+.panel{background:var(--surface);border:1px solid var(--grid);border-radius:6px;padding:16px}
+.filters{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+select,input[type=date]{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:6px 8px;max-width:100%;min-height:34px}
+select:hover,input[type=date]:hover{border-color:var(--ink2)}
+#sel-station{min-width:230px}#sel-var{min-width:250px}
+.filters .note{flex-basis:100%;margin:0}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:start}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin:0 0 6px;color:var(--ink2);font-size:12.5px}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.legend svg{width:26px;height:10px;flex:none}
+#main svg,#strip svg{display:block;max-width:100%}
+#strip svg{touch-action:pan-y;cursor:ew-resize}
+svg text{font-family:var(--font-body);fill:var(--ink2);font-size:11.5px}
+svg .num{font-family:var(--font-data);fill:var(--ink);font-size:12px}
+svg .lab{paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+svg .ttl{fill:var(--muted);font-size:11.5px}
+svg .msg{font-size:13px;fill:var(--ink2)}
+.state{padding:40px 8px;text-align:center;color:var(--ink2)}
+.read{display:flex;flex-direction:column;gap:14px}
+.clock{font-family:var(--font-data);font-variant-numeric:tabular-nums}
+.clock .day{font-size:13px;color:var(--ink2);display:block}
+.clock .hm{font-size:38px;font-weight:500;line-height:1.1;letter-spacing:-.02em}
+.clock .tz{font-size:12px;color:var(--muted);margin-left:6px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th{font-weight:500;font-size:11.5px;text-align:right;color:var(--muted);padding:0 0 6px;letter-spacing:.03em;text-transform:uppercase}
+th:first-child,td:first-child{text-align:left}
+td{padding:7px 0;border-top:1px solid var(--grid);text-align:right;font-family:var(--font-data);font-size:13px}
+td:first-child{font-family:var(--font-body);color:var(--ink2)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:-1px}
+.note{color:var(--muted);font-size:12px;margin:0}
+.ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:10px}
+button{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:6px 12px;cursor:pointer}
+button:hover{border-color:var(--ink2)}
+button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+#play{min-width:96px;font-weight:500}
+.seg{display:inline-flex;flex-wrap:wrap}
+.seg button{border-radius:0;margin-left:-1px}
+.seg button:first-child{border-radius:4px 0 0 4px;margin-left:0}
+.seg button:last-child{border-radius:0 4px 4px 0}
+.seg-l{font-size:12px;color:var(--muted)}
+#scrub{width:100%;accent-color:var(--accent);margin:6px 0 0}
+footer{color:var(--muted);font-size:12px;max-width:84ch}
+@media (max-width:780px){.stage{grid-template-columns:minmax(0,1fr)}.panel{padding:12px}#sel-station,#sel-var{min-width:0;width:100%}.field:nth-child(-n+2){flex-basis:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="crumb"><a href="./">← Portale dei dati di monitoraggio</a></p>
+    <h1>Come si sposta l'acqua nel terreno</h1>
+    <p class="sub" id="sub">Carico i dati…</p>
+  </header>
+
+  <section class="panel filters" aria-label="Scelta dei dati">
+    <div class="field"><label for="sel-station">Verticale</label><select id="sel-station" disabled></select></div>
+    <div class="field"><label for="sel-var">Grandezza</label><select id="sel-var" disabled></select></div>
+    <div class="field"><label for="d-from">Dal</label><input type="date" id="d-from" disabled></div>
+    <div class="field"><label for="d-to">Al</label><input type="date" id="d-to" disabled></div>
+    <p class="note" id="avail"></p>
+  </section>
+
+  <section class="stage">
+    <div class="panel">
+      <div class="legend" aria-hidden="true">
+        <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--ink)" stroke-width="2.5"/></svg>Profilo attuale</span>
+        <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="4 3" opacity=".55"/></svg>Primo dato del periodo</span>
+        <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--ink)" stroke-width="1.6" opacity=".22"/></svg>Istanti appena trascorsi</span>
+      </div>
+      <div id="main"><div class="state">Carico i dati…</div></div>
+    </div>
+
+    <aside class="panel read">
+      <div class="clock" aria-live="off"><span class="day" id="clk-day">—</span><span class="hm" id="clk-hm">--:--</span><span class="tz">UTC+1</span></div>
+      <table>
+        <thead><tr><th>Profondità</th><th id="th-unit">valore</th><th>Δ dall'inizio</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p class="note" id="rnote"></p>
+    </aside>
+  </section>
+
+  <section class="panel">
+    <div class="ctrl">
+      <button id="play" type="button" disabled>Pausa</button>
+      <span class="seg-l">Velocità</span>
+      <span class="seg" id="speeds" role="group" aria-label="Velocità"></span>
+    </div>
+    <div id="strip"></div>
+    <input id="scrub" type="range" min="0" max="1" step="1" value="0" aria-label="Istante nel periodo scelto" disabled>
+  </section>
+
+  <footer id="foot">
+    Dati letti direttamente dal repository <a href="https://github.com/michelecalvello/IoT_Vaglio">IoT_Vaglio</a>: <code>catalog.json</code> e le serie orarie in <code>data/agg/</code> (medie orarie del dato originale; le ore con meno della metà dei dati e i valori scartati dal controllo di qualità non sono inclusi). Sensori: Università di Salerno. Pioggia giornaliera: pluviometro di Vaglio di Basilicata, Centro Funzionale Decentrato Basilicata. Orari in UTC+1.
+  </footer>
+</div>
+
+<script>
+(function(){
+var NS="http://www.w3.org/2000/svg";
+var MESI=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+var HOUR=3600000,DAY=86400000;
+var SPEEDS=[{h:2,l:"2 h/s"},{h:6,l:"6 h/s"},{h:24,l:"1 g/s"},{h:168,l:"7 g/s"},{h:720,l:"30 g/s"}];
+var SHADE={1:[2],2:[0,3],3:[0,1,3],4:[0,1,2,3]};
+var VARDEC={vwc:3,psi:1,t_soil:1,sr:1};   /* grandezze mostrate e decimali */
+var RAIN_FILE="data/agg/VAG_CF_RAIN_1d.csv";
+
+var CAT=null,RAIN=null,DOCS={};
+var st={key:"VAG_S3",vk:"vwc",vars:{},stName:"",doc:null,V:null,A:[],depths:[],fv:0,lv:0,s0:0,s1:0,L:0,
+        lo:0,hi:1,log:false,ticks:[],tdec:0,base:[],empty:true};
+var pos=0,playing=false,speed=6,raf=0,lastT=0;
+var M={},S={};
+var def={from:"2025-01-18",to:"2025-01-20"};
+
+function $(id){return document.getElementById(id);}
+function el(p,tag,a,txt){var e=document.createElementNS(NS,tag);for(var k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;if(p)p.appendChild(e);return e;}
+function h(tag,props,txt){var e=document.createElement(tag);for(var k in props)e.setAttribute(k,props[k]);if(txt!=null)e.textContent=txt;return e;}
+function fmt(v,d){return v.toFixed(d).replace(".",",");}
+function fmtD(v,d){return (v>=0?"+":"−")+Math.abs(v).toFixed(d).replace(".",",");}
+function z2(n){return ("0"+n).slice(-2);}
+function dstr(ms){var d=new Date(ms);return d.getUTCFullYear()+"-"+z2(d.getUTCMonth()+1)+"-"+z2(d.getUTCDate());}
+function dlong(ms){var d=new Date(ms);return d.getUTCDate()+" "+MESI[d.getUTCMonth()]+" "+d.getUTCFullYear();}
+function pathOf(pts){return pts.length?"M"+pts.map(function(q){return q[0].toFixed(1)+" "+q[1].toFixed(1);}).join("L"):"";}
+function colorOf(j,n){return "var(--d"+SHADE[Math.min(4,n)][j]+")";}
+function getText(u){return fetch(u).then(function(r){if(!r.ok)throw new Error(u+" "+r.status);return r.text();});}
+function fixUnit(u){return String(u).replace("m3/m3","m³/m³");}
+
+/* ---------- lettura diretta dei file del repository ---------- */
+function parseCSV(txt,minCov){
+  var lines=txt.split("\n"),hd=lines[0].trim().split(","),iv=hd.indexOf("value"),ic=hd.indexOf("coverage"),out=[];
+  for(var i=1;i<lines.length;i++){var l=lines[i];if(!l)continue;var c=l.split(",");
+    if(c[iv]===""||c[iv]===undefined)continue;
+    if(ic>=0&&parseFloat(c[ic])<minCov)continue;
+    var s=c[0];
+    out.push([Date.UTC(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10),+s.slice(11,13)||0,+s.slice(14,16)||0),parseFloat(c[iv])]);}
+  return out;
+}
+function varsOf(key){
+  var out={};
+  Object.keys(VARDEC).forEach(function(vk){
+    var ser=CAT.series.filter(function(s){return s.station_id===key&&s.variable===vk&&s.data&&s.data.agg_1h;});
+    if(!ser.length)return;
+    var meta=CAT.variables[vk]||{};
+    out[vk]={label:meta.label_it||vk,unit:fixUnit(meta.unit||""),dec:VARDEC[vk],sensor:ser[0].sensor_model,
+      series:ser.map(function(s){return {depth:Math.round(s.depth_m*100),file:s.data.agg_1h,id:s.series_id};})
+                .sort(function(a,b){return a.depth-b.depth;})};
+  });
+  return out;
+}
+function stationList(){
+  var out=[];
+  CAT.stations.forEach(function(s){
+    if(s.kind==="grid")return;
+    if(Object.keys(varsOf(s.station_id)).length)out.push({key:s.station_id,name:s.name.replace(/^Vaglio\s+[–-]\s+/,"")});});
+  return out;
+}
+function loadVar(key,vk){
+  var id=key+"|"+vk;if(DOCS[id])return Promise.resolve(DOCS[id]);
+  var V=st.vars[vk];
+  return Promise.all(V.series.map(function(s){return getText(s.file).then(function(t){return parseCSV(t,0.5);});})).then(function(all){
+    var tmin=1e18,tmax=-1e18,i;
+    all.forEach(function(rows){for(i=0;i<rows.length;i++){if(rows[i][0]<tmin)tmin=rows[i][0];if(rows[i][0]>tmax)tmax=rows[i][0];}});
+    if(tmax<tmin)throw new Error("nessun dato");
+    var n=Math.round((tmax-tmin)/HOUR)+1;
+    var A=all.map(function(rows){var a=new Array(n),k;for(k=0;k<n;k++)a[k]=NaN;
+      rows.forEach(function(r){a[Math.round((r[0]-tmin)/HOUR)]=(vk==="psi")?Math.max(Math.abs(r[1]),0.01):r[1];});return a;});
+    var doc={t0:tmin,n:n,A:A,depths:V.series.map(function(s){return s.depth;})};
+    DOCS[id]=doc;return doc;});
+}
+function loadRain(){
+  return getText(RAIN_FILE).then(function(t){
+    var rows=parseCSV(t,0),t0=rows[0][0],t1=rows[rows.length-1][0],n=Math.round((t1-t0)/DAY)+1,v=new Array(n),i;
+    for(i=0;i<n;i++)v[i]=null;
+    rows.forEach(function(r){v[Math.round((r[0]-t0)/DAY)]=r[1];});
+    RAIN={t0:t0,scale:1,v:v};});
+}
+
+/* ---------- valori ---------- */
+function val(j,p){
+  var g=st.s0+p,i=Math.floor(g),f=g-i,A=st.A[j];
+  var a=A[i];if(f<1e-9||i>=st.s1)return a;
+  var b=A[i+1];return (isNaN(a)||isNaN(b))?NaN:a*(1-f)+b*f;
+}
+function fx(v){
+  if(st.log){var lo=Math.log(st.lo),hi=Math.log(st.hi);return (Math.log(Math.max(v,st.lo*0.5))-lo)/(hi-lo);}
+  return (v-st.lo)/(st.hi-st.lo);
+}
+function niceStep(raw){var e=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/e;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e;}
+function decOf(step){var d=0;while(Math.abs(step*Math.pow(10,d)-Math.round(step*Math.pow(10,d)))>1e-9&&d<6)d++;return d;}
+function setDomain(vmin,vmax){
+  var key=st.vk;st.log=(key==="psi");st.ticks=[];
+  if(st.log){
+    var lo=Math.pow(10,Math.floor(Math.log10(vmin))),hi=Math.pow(10,Math.ceil(Math.log10(vmax)));
+    if(hi<=lo)hi=lo*10;st.lo=lo;st.hi=hi;
+    var dec=Math.round(Math.log10(hi/lo)),mult=dec<=2?[1,2,5]:[1];
+    for(var k=Math.round(Math.log10(lo));k<=Math.round(Math.log10(hi));k++)
+      mult.forEach(function(m){var v=m*Math.pow(10,k);if(v>=lo*0.999&&v<=hi*1.001)st.ticks.push(v);});
+    st.tdec=0;return;
+  }
+  if(vmax-vmin<1e-9){var pd=Math.abs(vmin)*0.02||0.5;vmin-=pd;vmax+=pd;}
+  var pad=(vmax-vmin)*0.08,a=vmin-pad,b=vmax+pad;
+  var step=niceStep((b-a)/4);
+  var lo2=Math.floor(a/step+1e-9)*step,hi2=Math.ceil(b/step-1e-9)*step;
+  if(key==="sr")hi2=Math.min(hi2,100);
+  if(key==="sr"||key==="vwc")lo2=Math.max(lo2,0);
+  st.lo=lo2;st.hi=hi2;st.tdec=decOf(step);
+  for(var v=lo2;v<=hi2+step*1e-6;v+=step)st.ticks.push(Math.round(v*1e8)/1e8);
+}
+function tickLabel(v){return st.log?String(v).replace(".",","):fmt(v,st.tdec);}
+
+/* ---------- selezione ---------- */
+function showState(msg){
+  $("main").textContent="";$("main").appendChild(h("div",{"class":"state"},msg));
+  $("strip").textContent="";
+}
+function fillStations(){
+  var s=$("sel-station");s.textContent="";
+  stationList().forEach(function(o){s.appendChild(h("option",{value:o.key},o.key.replace("VAG_","")+" · "+o.name));});
+  s.value=st.key;s.disabled=false;
+}
+function fillVars(){
+  var s=$("sel-var");s.textContent="";var keys=Object.keys(st.vars);
+  keys.forEach(function(k){var v=st.vars[k];
+    s.appendChild(h("option",{value:k},v.label+" ("+v.unit+(v.sensor?" · "+v.sensor:"")+")"));});
+  if(!st.vars[st.vk])st.vk=keys[0];
+  s.value=st.vk;s.disabled=keys.length<2;
+}
+function chooseStation(key){
+  st.key=key;st.vars=varsOf(key);
+  var o=stationList().filter(function(s){return s.key===key;})[0];st.stName=o?o.name:key;
+  fillVars();return applyVar();
+}
+function applyVar(){
+  var key=st.key,vk=st.vk;
+  setPlaying(false);showState("Carico i dati di "+key.replace("VAG_","")+"…");
+  return loadVar(key,vk).then(function(doc){
+    if(key!==st.key||vk!==st.vk)return;
+    st.doc=doc;st.V=st.vars[vk];st.depths=doc.depths;st.A=doc.A;
+    var fv=1e9,lv=-1;
+    st.A.forEach(function(a){var i,k;
+      for(i=0;i<a.length;i++)if(!isNaN(a[i])){if(i<fv)fv=i;break;}
+      for(k=a.length-1;k>=0;k--)if(!isNaN(a[k])){if(k>lv)lv=k;break;}});
+    st.fv=fv;st.lv=lv;
+    var dmin=dstr(doc.t0+fv*HOUR),dmax=dstr(doc.t0+lv*HOUR);
+    var f=$("d-from"),t=$("d-to");
+    f.min=t.min=dmin;f.max=t.max=dmax;f.disabled=t.disabled=false;
+    if(!f.value)f.value=def.from;if(!t.value)t.value=def.to;
+    /* riporta le date dentro il periodo disponibile, mantenendo la durata */
+    var a=f.value,b=t.value;
+    if(a>b){var x=a;a=b;b=x;}
+    var span=Math.round((Date.parse(b)-Date.parse(a))/DAY);
+    if(a<dmin){a=dmin;b=dstr(Date.parse(a)+span*DAY);}
+    if(b>dmax){b=dmax;a=dstr(Math.max(Date.parse(dmin),Date.parse(b)-span*DAY));}
+    if(a<dmin)a=dmin;if(b<a)b=a;
+    f.value=a;t.value=b;
+    st.avail="Dati disponibili per questa grandezza: dal "+dlong(Date.parse(dmin))+" al "+dlong(Date.parse(dmax))+
+      " · profondità "+st.depths.join(", ")+" cm"+(st.V.sensor?" · sensori "+st.V.sensor:"")+".";
+    applyRange();
+  }).catch(function(e){
+    if(window.console)console.error(e);
+    if(key===st.key&&vk===st.vk)showState("Non riesco a leggere questi dati dal repository. Riprova tra poco.");
+  });
+}
+function applyRange(){
+  setPlaying(false);
+  var doc=st.doc,f=$("d-from").value,t=$("d-to").value;
+  if(!f||!t)return;
+  if(f>t){var x=f;f=t;t=x;$("d-from").value=f;$("d-to").value=t;}
+  var s0=Math.round((Date.parse(f)-doc.t0)/HOUR),s1=Math.round((Date.parse(t)+23*HOUR-doc.t0)/HOUR);
+  s0=Math.max(s0,st.fv);s1=Math.min(s1,st.lv);
+  st.s0=s0;st.s1=s1;st.L=s1-s0;
+  var vmin=1e18,vmax=-1e18,cov=[],base=[];
+  st.A.forEach(function(a,j){var c=0,b=NaN;
+    for(var i=s0;i<=s1;i++){var v=a[i];if(!isNaN(v)){c++;if(isNaN(b))b=v;if(v<vmin)vmin=v;if(v>vmax)vmax=v;}}
+    cov.push(c/Math.max(1,s1-s0+1));base.push(b);});
+  st.base=base;st.empty=(st.L<1||vmax<vmin);
+  var sub=$("sub");sub.textContent="";
+  sub.appendChild(h("b",{},"Vaglio – "+st.stName));
+  sub.appendChild(document.createTextNode(". "+st.V.label+" ("+st.V.unit+")"+(st.V.sensor?", sensori "+st.V.sensor+" a "+st.depths.join(", ")+" cm":"")+
+    ", dal "+dlong(doc.t0+s0*HOUR)+" al "+dlong(doc.t0+s1*HOUR)+", medie orarie."));
+  $("th-unit").textContent=(st.vk==="psi"?"|ψ| kPa":st.V.unit);
+  var rn="Il profilo unisce con segmenti rettilinei i sensori che hanno un dato in quell'istante. Sopra e sotto i sensori non ci sono misure.";
+  if(st.vk==="psi")rn+=" Il grafico mostra la suzione |ψ|, cioè il valore assoluto del potenziale matriciale, in scala logaritmica.";
+  if(st.vk==="sr")rn+=" 100 % corrisponde al terreno saturo.";
+  $("rnote").textContent=rn;
+  $("avail").textContent=st.avail+" Copertura dei dati nel periodo scelto: "+
+    st.depths.map(function(d,j){return d+" cm "+Math.round(cov[j]*100)+" %";}).join(" · ")+".";
+  buildRows();
+  if(st.empty){
+    showState("Nessun dato valido nel periodo scelto. Scegli date comprese tra "+dlong(doc.t0+st.fv*HOUR)+" e "+dlong(doc.t0+st.lv*HOUR)+".");
+    ["play","scrub"].forEach(function(i){$(i).disabled=true;});
+    $("clk-day").textContent="—";$("clk-hm").textContent="--:--";return;
+  }
+  setDomain(vmin,vmax);
+  pos=0;
+  var best=2,bd=1e18;SPEEDS.forEach(function(sp){var d=Math.abs(Math.log((st.L/sp.h)/15));if(d<bd){bd=d;best=sp.h;}});
+  speed=best;buildSpeeds();
+  $("scrub").max=st.L;$("scrub").disabled=false;$("play").disabled=false;
+  build();
+  var rm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setPlaying(!rm);
+}
+
+/* ---------- grafico del profilo ---------- */
+function buildMain(){
+  var host=$("main");host.textContent="";
+  var W=Math.max(260,host.clientWidth||520),H=Math.round(Math.min(560,Math.max(380,W*0.95)));
+  var m={l:40,r:20,t:34,b:50};
+  var svg=el(host,"svg",{width:W,height:H,viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Profilo del valore misurato in funzione della profondità, animato nel tempo"});
+  var maxD=Math.max.apply(null,st.depths),y1=Math.ceil((maxD+5)/10)*10;
+  var X=function(v){return m.l+fx(v)*(W-m.l-m.r);};
+  var Y=function(d){return m.t+d/y1*(H-m.t-m.b);};
+  st.ticks.forEach(function(v){var x=m.l+fx(v)*(W-m.l-m.r);
+    el(svg,"line",{x1:x,x2:x,y1:Y(0),y2:Y(y1),stroke:"var(--grid)","stroke-width":1});
+    el(svg,"text",{x:x,y:Y(y1)+16,"text-anchor":"middle","class":"num"},tickLabel(v));});
+  [0].concat(st.depths).forEach(function(d){
+    el(svg,"line",{x1:m.l,x2:W-m.r,y1:Y(d),y2:Y(d),stroke:d===0?"var(--ink2)":"var(--rule)","stroke-width":d===0?2:1,"stroke-dasharray":d===0?"":"2 4"});
+    el(svg,"text",{x:m.l-8,y:Y(d)+4,"text-anchor":"end","class":"num"},String(d));});
+  el(svg,"text",{x:W-m.r,y:Y(0)-8,"text-anchor":"end","class":"ttl"},"superficie");
+  el(svg,"text",{x:4,y:14,"class":"ttl"},"Profondità (cm)");
+  var xt=st.vk==="psi"?"Suzione |ψ| (kPa, scala logaritmica)":st.V.label+" ("+st.V.unit+")";
+  el(svg,"text",{x:(m.l+W-m.r)/2,y:H-8,"text-anchor":"middle","class":"ttl"},xt);
+  var n=st.depths.length;
+  var sp=[];st.depths.forEach(function(d,j){if(!isNaN(st.base[j]))sp.push([X(st.base[j]),Y(d)]);});
+  el(svg,"path",{d:pathOf(sp),fill:"none",stroke:"var(--ink)","stroke-width":1.6,"stroke-dasharray":"4 3",opacity:.55,"stroke-linejoin":"round"});
+  M={svg:svg,X:X,Y:Y,W:W,H:H,m:m,trail:[],cur:null,dots:[],labs:[],msg:null};
+  for(var k=0;k<6;k++)M.trail.push(el(svg,"path",{fill:"none",stroke:"var(--ink)","stroke-width":1.6,"stroke-linejoin":"round",opacity:0}));
+  M.cur=el(svg,"path",{fill:"none",stroke:"var(--ink)","stroke-width":2.5,"stroke-linejoin":"round"});
+  st.depths.forEach(function(d,j){
+    M.dots.push(el(svg,"circle",{r:6.5,fill:colorOf(j,n),stroke:"var(--surface)","stroke-width":2}));
+    M.labs.push(el(svg,"text",{"class":"num lab","font-weight":"500"}));});
+  M.msg=el(svg,"text",{x:(m.l+W-m.r)/2,y:H/2,"text-anchor":"middle","class":"msg"},"");
+}
+function profile(p){
+  var pts=[];
+  st.depths.forEach(function(d,j){var v=val(j,p);if(!isNaN(v))pts.push([M.X(v),M.Y(d)]);});
+  return pts;
+}
+function updMain(){
+  if(!M.svg)return;
+  var k,sp=Math.max(0.4,speed*0.1);
+  for(k=1;k<=6;k++){var q=pos-k*sp;
+    if(q<0){M.trail[k-1].setAttribute("opacity",0);continue;}
+    var tp=profile(q);
+    M.trail[k-1].setAttribute("d",tp.length>1?pathOf(tp):"");
+    M.trail[k-1].setAttribute("opacity",tp.length>1?(0.34*(1-(k-1)/6)).toFixed(3):0);}
+  var c=profile(pos);
+  M.cur.setAttribute("d",c.length>1?pathOf(c):"");
+  var any=0;
+  st.depths.forEach(function(d,j){
+    var v=val(j,pos);
+    if(isNaN(v)){M.dots[j].setAttribute("visibility","hidden");M.labs[j].setAttribute("visibility","hidden");return;}
+    any++;
+    var x=M.X(v),y=M.Y(d),right=x<M.W-M.m.r-56;
+    M.dots[j].setAttribute("visibility","visible");M.dots[j].setAttribute("cx",x);M.dots[j].setAttribute("cy",y);
+    M.labs[j].setAttribute("visibility","visible");
+    M.labs[j].setAttribute("x",x+(right?11:-11));M.labs[j].setAttribute("y",y-9);
+    M.labs[j].setAttribute("text-anchor",right?"start":"end");
+    M.labs[j].textContent=fmt(v,st.V.dec);});
+  M.msg.textContent=any?"":"Nessun dato valido in questo istante";
+}
+
+/* ---------- serie nel tempo, con pioggia ---------- */
+function timeTicks(t0,L,maxT){
+  var days=L/24,out=[],t1=t0+L*HOUR,d,t;
+  if(days<=4){
+    for(t=Math.ceil(t0/(12*HOUR))*12*HOUR;t<=t1;t+=12*HOUR)out.push({ms:t,l:z2(new Date(t).getUTCHours())});
+  }else if(days<=90){
+    var step=[1,2,3,7,14,30].filter(function(s){return days/s<=maxT;})[0]||30;
+    for(t=Math.ceil(t0/DAY)*DAY;t<=t1;t+=step*DAY){d=new Date(t);out.push({ms:t,l:d.getUTCDate()+" "+MESI[d.getUTCMonth()]});}
+  }else{
+    var ms=[1,2,3,6,12].filter(function(s){return days/30/s<=maxT;})[0]||12;
+    d=new Date(t0);var y=d.getUTCFullYear(),mo=d.getUTCMonth();
+    if(Date.UTC(y,mo,1)<t0)mo++;
+    for(;;mo+=ms){t=Date.UTC(y,mo,1);if(t>t1)break;var dd=new Date(t);out.push({ms:t,l:MESI[dd.getUTCMonth()]+" "+String(dd.getUTCFullYear()).slice(2)});}
+  }
+  return out;
+}
+function buildStrip(){
+  var host=$("strip");host.textContent="";
+  var W=Math.max(260,host.clientWidth||900),H=214;
+  var m={l:44,r:48,t:64,b:26},pw=W-m.l-m.r,L=st.L,t0=st.doc.t0+st.s0*HOUR,n=st.depths.length;
+  var svg=el(host,"svg",{width:W,height:H,viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Andamento nel tempo dei valori dei sensori e pioggia giornaliera"});
+  var X=function(hh){return m.l+hh/L*pw;};
+  var Y=function(v){return H-m.b-fx(v)*(H-m.t-m.b);};
+  st.ticks.forEach(function(v){
+    el(svg,"line",{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:"var(--grid)","stroke-width":1});
+    el(svg,"text",{x:m.l-8,y:Y(v)+4,"text-anchor":"end","class":"num"},tickLabel(v));});
+  var tk=timeTicks(t0,L,Math.max(2,Math.floor(pw/80)));
+  tk.forEach(function(q){var x=X((q.ms-t0)/HOUR);
+    el(svg,"line",{x1:x,x2:x,y1:m.t,y2:H-m.b,stroke:"var(--grid)","stroke-width":1});
+    var an=x<m.l+14?"start":(x>W-m.r-14?"end":"middle");
+    el(svg,"text",{x:x,y:H-8,"text-anchor":an,"class":"num"},q.l);});
+  /* pioggia giornaliera */
+  var d0=Math.floor(t0/DAY)*DAY,rmax=1,short=L/24<=4,ds;
+  for(ds=d0;ds<=t0+L*HOUR;ds+=DAY){var ri=Math.round((ds-RAIN.t0)/DAY),rv=RAIN.v[ri];if(rv!=null&&rv/RAIN.scale>rmax)rmax=rv/RAIN.scale;}
+  var base=46,bh=26;
+  if(!short)el(svg,"text",{x:m.l,y:12,"class":"ttl"},"Pioggia giornaliera (mm) · massimo "+fmt(rmax,1)+" mm");
+  for(ds=d0;ds<=t0+L*HOUR;ds+=DAY){
+    var i2=Math.round((ds-RAIN.t0)/DAY),v2=(i2>=0&&i2<RAIN.v.length)?RAIN.v[i2]:null;
+    var xa=Math.max(0,(ds-t0)/HOUR),xb=Math.min(L,(ds+DAY-t0)/HOUR);
+    if(xb<=xa)continue;
+    if(v2!=null){var hh=Math.max(v2>0?1:0,v2/RAIN.scale/rmax*bh);
+      el(svg,"rect",{x:X(xa)+(short?1:0),y:base-hh,width:Math.max(1,X(xb)-X(xa)-(short?2:(X(xb)-X(xa)>3?1:0))),height:hh,fill:"var(--rain)"});}
+    if(short)el(svg,"text",{x:(X(xa)+X(xb))/2,y:12,"text-anchor":"middle","class":"ttl"},
+      new Date(ds).getUTCDate()+" "+MESI[new Date(ds).getUTCMonth()]+" · pioggia "+(v2==null?"n.d.":fmt(v2/RAIN.scale,1)+" mm"));
+  }
+  el(svg,"line",{x1:m.l,x2:W-m.r,y1:base,y2:base,stroke:"var(--rule)","stroke-width":1});
+  /* serie */
+  var stride=Math.max(1,Math.ceil((L+1)/(pw*1.5))),ends=[];
+  st.depths.forEach(function(d,j){
+    var segs=[],cur=[],i,k;
+    for(i=0;i<=L;i+=stride){var sum=0,c=0;
+      for(k=i;k<Math.min(L+1,i+stride);k++){var v=st.A[j][st.s0+k];if(!isNaN(v)){sum+=v;c++;}}
+      if(c){cur.push([X(i+(Math.min(L+1,i+stride)-i-1)/2),Y(sum/c)]);}
+      else if(cur.length){segs.push(cur);cur=[];}}
+    if(cur.length)segs.push(cur);
+    el(svg,"path",{d:segs.map(pathOf).join(""),fill:"none",stroke:colorOf(j,n),"stroke-width":2,"stroke-linejoin":"round"});
+    var lastV=NaN;for(i=st.s1;i>=st.s0;i--){if(!isNaN(st.A[j][i])){lastV=st.A[j][i];break;}}
+    if(!isNaN(lastV))ends.push({j:j,y:Y(lastV)});});
+  ends.sort(function(a,b){return a.y-b.y;});
+  for(var q=1;q<ends.length;q++)if(ends[q].y-ends[q-1].y<13)ends[q].y=ends[q-1].y+13;
+  if(ends.length&&ends[ends.length-1].y>H-m.b){ends[ends.length-1].y=H-m.b;
+    for(q=ends.length-2;q>=0;q--)if(ends[q+1].y-ends[q].y<13)ends[q].y=ends[q+1].y-13;}
+  ends.forEach(function(e){el(svg,"text",{x:W-m.r+7,y:e.y+4,"class":"num"},st.depths[e.j]+" cm");});
+  S={svg:svg,X:X,Y:Y,W:W,H:H,m:m,cur:null,dots:[]};
+  S.cur=el(svg,"line",{y1:m.t-4,y2:H-m.b,stroke:"var(--accent)","stroke-width":2});
+  st.depths.forEach(function(d,j){S.dots.push(el(svg,"circle",{r:4.5,fill:colorOf(j,n),stroke:"var(--surface)","stroke-width":2}));});
+  var drag=false;
+  function setFrom(ev){var r=svg.getBoundingClientRect();var px=(ev.clientX-r.left)*(W/r.width);
+    pos=Math.max(0,Math.min(L,(px-m.l)/pw*L));setPlaying(false);render();}
+  svg.addEventListener("pointerdown",function(ev){drag=true;try{svg.setPointerCapture(ev.pointerId);}catch(e){}setFrom(ev);});
+  svg.addEventListener("pointermove",function(ev){if(drag)setFrom(ev);});
+  svg.addEventListener("pointerup",function(){drag=false;});
+  svg.addEventListener("pointercancel",function(){drag=false;});
+}
+function updStrip(){
+  if(!S.svg)return;
+  var x=S.X(pos);S.cur.setAttribute("x1",x);S.cur.setAttribute("x2",x);
+  st.depths.forEach(function(d,j){var v=val(j,pos);
+    if(isNaN(v)){S.dots[j].setAttribute("visibility","hidden");return;}
+    S.dots[j].setAttribute("visibility","visible");S.dots[j].setAttribute("cx",x);S.dots[j].setAttribute("cy",S.Y(v));});
+}
+
+/* ---------- lettura numerica ---------- */
+function buildRows(){
+  var tb=$("rows");tb.textContent="";var n=st.depths.length;
+  st.depths.forEach(function(d,j){
+    var tr=h("tr",{}),a=h("td",{}),b=h("td",{id:"v"+j}),c=h("td",{id:"c"+j});
+    var sw=h("span",{"class":"sw"});sw.style.background=colorOf(j,n);
+    a.appendChild(sw);a.appendChild(document.createTextNode(d+" cm"));
+    tr.appendChild(a);tr.appendChild(b);tr.appendChild(c);tb.appendChild(tr);});
+}
+function updRead(){
+  var ms=st.doc.t0+(st.s0+Math.round(pos))*HOUR,d=new Date(ms);
+  $("clk-day").textContent=dlong(ms);$("clk-hm").textContent=z2(d.getUTCHours())+":"+z2(d.getUTCMinutes());
+  st.depths.forEach(function(dep,j){var v=val(j,pos);
+    $("v"+j).textContent=isNaN(v)?"n.d.":fmt(v,st.V.dec);
+    $("c"+j).textContent=(isNaN(v)||isNaN(st.base[j]))?"n.d.":fmtD(v-st.base[j],st.V.dec);});
+  $("scrub").value=Math.round(pos);
+}
+function render(){if(st.empty)return;updMain();updStrip();updRead();}
+function build(){if(st.empty)return;buildMain();buildStrip();render();}
+
+/* ---------- animazione ---------- */
+function buildSpeeds(){
+  var box=$("speeds");box.textContent="";
+  SPEEDS.forEach(function(sp){var b=h("button",{type:"button"},sp.l);if(sp.h===speed)b.className="on";
+    b.addEventListener("click",function(){speed=sp.h;buildSpeeds();});box.appendChild(b);});
+}
+function setPlaying(on){
+  playing=on&&!st.empty;
+  $("play").textContent=playing?"Pausa":(pos>=st.L-1e-9&&st.L>0?"Riavvia":"Riproduci");
+  cancelAnimationFrame(raf);
+  if(playing){lastT=0;raf=requestAnimationFrame(tick);}
+}
+function tick(t){
+  if(!playing)return;
+  if(lastT){pos+=Math.min(0.1,(t-lastT)/1000)*speed;if(pos>=st.L)pos=0;}
+  lastT=t;render();raf=requestAnimationFrame(tick);
+}
+
+/* ---------- eventi ---------- */
+$("play").addEventListener("click",function(){if(!playing&&pos>=st.L)pos=0;setPlaying(!playing);});
+$("scrub").addEventListener("input",function(ev){pos=+ev.target.value;setPlaying(false);render();});
+$("sel-station").addEventListener("change",function(ev){chooseStation(ev.target.value);});
+$("sel-var").addEventListener("change",function(ev){st.vk=ev.target.value;applyVar();});
+$("d-from").addEventListener("change",applyRange);
+$("d-to").addEventListener("change",applyRange);
+document.addEventListener("keydown",function(ev){
+  if(ev.code==="Space"&&!/^(BUTTON|INPUT|SELECT)$/.test((document.activeElement||{}).tagName||"")){ev.preventDefault();if(!$("play").disabled)$("play").click();}});
+var rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(function(){build();},120);});
+
+fetch("catalog.json").then(function(r){if(!r.ok)throw new Error("catalog "+r.status);return r.json();}).then(function(c){
+  CAT=c;
+  var g=String(c.generated||"").slice(0,10).split("-").reverse().join("/");
+  if(g)$("foot").appendChild(document.createTextNode(" Catalogo aggiornato il "+g+"."));
+  return loadRain();
+}).then(function(){
+  fillStations();return chooseStation(st.key);
+}).catch(function(e){
+  if(window.console)console.error(e);
+  showState("Non riesco a leggere i dati dal repository. Se apri il file dal disco, avvia un server nella cartella del repository (python -m http.server) e riprova.");
+  $("sub").textContent="";
+});
+})();
+</script>
+</body>
+</html>
