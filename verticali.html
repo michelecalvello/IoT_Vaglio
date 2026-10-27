@@ -100,6 +100,16 @@ footer{color:var(--muted);font-size:12px;max-width:84ch}
     <p class="note" id="avail"></p>
   </section>
 
+  <section class="panel">
+    <div class="ctrl">
+      <button id="play" type="button" disabled>Pausa</button>
+      <span class="seg-l">Velocità</span>
+      <span class="seg" id="speeds" role="group" aria-label="Velocità"></span>
+    </div>
+    <div id="strip"></div>
+    <input id="scrub" type="range" min="0" max="1" step="1" value="0" aria-label="Istante nel periodo scelto" disabled>
+  </section>
+
   <section class="stage">
     <div class="panel">
       <div class="legend" aria-hidden="true">
@@ -118,16 +128,6 @@ footer{color:var(--muted);font-size:12px;max-width:84ch}
       </table>
       <p class="note" id="rnote"></p>
     </aside>
-  </section>
-
-  <section class="panel">
-    <div class="ctrl">
-      <button id="play" type="button" disabled>Pausa</button>
-      <span class="seg-l">Velocità</span>
-      <span class="seg" id="speeds" role="group" aria-label="Velocità"></span>
-    </div>
-    <div id="strip"></div>
-    <input id="scrub" type="range" min="0" max="1" step="1" value="0" aria-label="Istante nel periodo scelto" disabled>
   </section>
 
   <footer id="foot">
@@ -344,7 +344,7 @@ function applyRange(){
 /* ---------- grafico del profilo ---------- */
 function buildMain(){
   var host=$("main");host.textContent="";
-  var W=Math.max(260,host.clientWidth||520),H=Math.round(Math.min(560,Math.max(380,W*0.95)));
+  var W=Math.max(260,host.clientWidth||520),H=Math.round(Math.min(340,Math.max(290,W*0.5)));
   var m={l:40,r:20,t:34,b:50};
   var svg=el(host,"svg",{width:W,height:H,viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Profilo del valore misurato in funzione della profondità, animato nel tempo"});
   var maxD=Math.max.apply(null,st.depths),y1=Math.ceil((maxD+5)/10)*10;
@@ -434,7 +434,8 @@ function buildStrip(){
   /* pioggia giornaliera */
   var d0=Math.floor(t0/DAY)*DAY,rmax=1,short=L/24<=4,ds;
   for(ds=d0;ds<=t0+L*HOUR;ds+=DAY){var ri=Math.round((ds-RAIN.t0)/DAY),rv=RAIN.v[ri];if(rv!=null&&rv/RAIN.scale>rmax)rmax=rv/RAIN.scale;}
-  var base=46,bh=26;
+  var narrow=short&&(pw/(L/24))<170;   /* colonne dei giorni strette: etichetta su due righe */
+  var base=46,bh=narrow?20:26;
   if(!short)el(svg,"text",{x:m.l,y:12,"class":"ttl"},"Pioggia giornaliera (mm) · massimo "+fmt(rmax,1)+" mm");
   for(ds=d0;ds<=t0+L*HOUR;ds+=DAY){
     var i2=Math.round((ds-RAIN.t0)/DAY),v2=(i2>=0&&i2<RAIN.v.length)?RAIN.v[i2]:null;
@@ -442,8 +443,11 @@ function buildStrip(){
     if(xb<=xa)continue;
     if(v2!=null){var hh=Math.max(v2>0?1:0,v2/RAIN.scale/rmax*bh);
       el(svg,"rect",{x:X(xa)+(short?1:0),y:base-hh,width:Math.max(1,X(xb)-X(xa)-(short?2:(X(xb)-X(xa)>3?1:0))),height:hh,fill:"var(--rain)"});}
-    if(short)el(svg,"text",{x:(X(xa)+X(xb))/2,y:12,"text-anchor":"middle","class":"ttl"},
-      new Date(ds).getUTCDate()+" "+MESI[new Date(ds).getUTCMonth()]+" · pioggia "+(v2==null?"n.d.":fmt(v2/RAIN.scale,1)+" mm"));
+    if(short){
+      var cx=(X(xa)+X(xb))/2,dt=new Date(ds).getUTCDate()+" "+MESI[new Date(ds).getUTCMonth()],rtxt=(v2==null?"n.d.":fmt(v2/RAIN.scale,1)+" mm");
+      if(narrow){el(svg,"text",{x:cx,y:11,"text-anchor":"middle","class":"ttl"},dt);
+        el(svg,"text",{x:cx,y:23,"text-anchor":"middle","class":"ttl"},rtxt);}
+      else el(svg,"text",{x:cx,y:12,"text-anchor":"middle","class":"ttl"},dt+" · pioggia "+rtxt);}
   }
   el(svg,"line",{x1:m.l,x2:W-m.r,y1:base,y2:base,stroke:"var(--rule)","stroke-width":1});
   /* serie */
