@@ -65,6 +65,10 @@ td{padding:7px 0;border-top:1px solid var(--grid);text-align:right;font-family:v
 td:first-child{font-family:var(--font-body);color:var(--ink2)}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:-1px}
 .note{color:var(--muted);font-size:12px;margin:0}
+.rainbox{border-top:1px solid var(--grid);padding-top:12px}
+.rainbox h2{margin:0 0 6px;font-family:var(--font-body);font-weight:500;font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.rainbox td:first-child{font-size:13px}
+.sw.bar{border-radius:1px;width:10px;height:10px}
 .ctrl{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:10px}
 button{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--rule);border-radius:4px;padding:6px 12px;cursor:pointer}
 button:hover{border-color:var(--ink2)}
@@ -86,7 +90,7 @@ footer{color:var(--muted);font-size:12px;max-width:84ch}
 <div class="wrap">
   <header>
     <p class="crumb"><a href="./">← Portale dei dati di monitoraggio</a></p>
-    <h1>Animazioni per verticale</h1>
+    <h1>Animazioni per verticale, con pioggia oraria</h1>
   </header>
 
   <section class="panel filters" aria-label="Scelta dei dati">
@@ -116,6 +120,8 @@ footer{color:var(--muted);font-size:12px;max-width:84ch}
         <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--glob)" stroke-width="1.8" stroke-dasharray="7 3" opacity=".85"/></svg>Minimo della serie di dati</span>
         <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--glob)" stroke-width="1.8" stroke-dasharray="2 3" opacity=".85"/></svg>Massimo della serie di dati</span>
         <span><svg viewBox="0 0 26 10"><line x1="0" y1="5" x2="26" y2="5" stroke="var(--ink)" stroke-width="1.6" opacity=".22"/></svg>Istanti appena trascorsi</span>
+        <span><svg viewBox="0 0 26 10"><rect x="3" y="0" width="8" height="10" fill="var(--rain)"/><rect x="14" y="0" width="8" height="6" fill="var(--rain)"/></svg>Pioggia oraria in superficie</span>
+        <span><svg viewBox="0 0 26 10"><rect x="9" y="0" width="8" height="10" fill="var(--accent)"/></svg>Ora in corso</span>
       </div>
       <div id="main"><div class="state">Carico i dati…</div></div>
     </div>
@@ -126,12 +132,19 @@ footer{color:var(--muted);font-size:12px;max-width:84ch}
         <thead><tr><th>Profondità</th><th id="th-unit">valore</th><th>Δ dall'inizio</th></tr></thead>
         <tbody id="rows"></tbody>
       </table>
+      <div class="rainbox">
+        <h2>Pioggia in superficie</h2>
+        <table>
+          <thead><tr><th>Intervallo</th><th>mm</th></tr></thead>
+          <tbody id="rrows"></tbody>
+        </table>
+      </div>
       <p class="note" id="rnote"></p>
     </aside>
   </section>
 
   <footer id="foot">
-    Dati letti direttamente dal repository <a href="https://github.com/michelecalvello/IoT_Vaglio">IoT_Vaglio</a>: <code>catalog.json</code> e le serie orarie in <code>data/agg/</code> (medie orarie del dato originale; le ore con meno della metà dei dati e i valori scartati dal controllo di qualità non sono inclusi). Sensori: Università di Salerno. Pioggia giornaliera: pluviometro di Vaglio di Basilicata, Centro Funzionale Decentrato Basilicata. Orari in UTC+1.
+    Dati letti direttamente dal repository <a href="https://github.com/michelecalvello/IoT_Vaglio">IoT_Vaglio</a>: <code>catalog.json</code> e le serie orarie in <code>data/agg/</code> (medie orarie del dato originale; le ore con meno della metà dei dati e i valori scartati dal controllo di qualità non sono inclusi). Sensori: Università di Salerno. Pioggia: pluviometro di Vaglio di Basilicata, Centro Funzionale Decentrato Basilicata; somme giornaliere nella serie nel tempo, somme orarie (<code>VAG_CF_RAIN_1h.csv</code>, ore con almeno metà dei minuti disponibili) in superficie nel profilo animato. Orari in UTC+1.
   </footer>
 </div>
 
@@ -144,8 +157,13 @@ var SPEEDS=[{h:2,l:"2 h/s"},{h:6,l:"6 h/s"},{h:24,l:"1 g/s"},{h:168,l:"7 g/s"},{
 var SHADE={1:[2],2:[0,3],3:[0,1,3],4:[0,1,2,3]};
 var VARDEC={vwc:3,psi:1,t_soil:1,sr:1};   /* grandezze mostrate e decimali */
 var RAIN_FILE="data/agg/VAG_CF_RAIN_1d.csv";
+var RAINH_FILE="data/agg/VAG_CF_RAIN_1h.csv";   /* pioggia oraria: condizione al contorno in superficie */
+var RWIN=[24,48,96,168,336,720];                 /* finestre (ore) della fascia di pioggia */
+var RBLK=[1,2,3,4,6,8,12,24];                    /* ore raggruppate per barra, quando la finestra è lunga */
+var RSCALE=[1,2,5,10,20,50,100];                 /* fondo scala della fascia (mm/h) */
+var RBAND=40;                                    /* altezza della fascia (px) */
 
-var CAT=null,RAIN=null,DOCS={};
+var CAT=null,RAIN=null,RH=null,DOCS={};
 var st={key:"VAG_S3",vk:"vwc",vars:{},stName:"",doc:null,V:null,A:[],depths:[],fv:0,lv:0,s0:0,s1:0,L:0,
         lo:0,hi:1,log:false,ticks:[],tdec:0,base:[],empty:true};
 var pos=0,playing=false,speed=6,raf=0,lastT=0;
@@ -215,6 +233,43 @@ function loadRain(){
     RAIN={t0:t0,scale:1,v:v};});
 }
 
+/* Pioggia oraria sulla stessa griglia oraria dei sensori. Le ore con meno di metà dei minuti sono n.d. (NaN). */
+function loadRainH(){
+  return getText(RAINH_FILE).then(function(t){
+    var rows=parseCSV(t,0.5),t0=rows[0][0],t1=rows[rows.length-1][0],n=Math.round((t1-t0)/HOUR)+1,v=new Float64Array(n),i;
+    for(i=0;i<n;i++)v[i]=NaN;
+    rows.forEach(function(r){v[Math.round((r[0]-t0)/HOUR)]=r[1];});
+    RH={t0:t0,n:n,v:v};
+  }).catch(function(e){if(window.console)console.error(e);RH=null;});
+}
+/* Indice orario i relativo a doc.t0 → pioggia (mm in quell'ora), NaN se manca */
+function rainH(i){
+  if(!RH)return NaN;
+  var k=st.roff+i;return (k>=0&&k<RH.n)?RH.v[k]:NaN;
+}
+/* Somme cumulate (e conteggio ore mancanti) sull'intera linea del tempo del documento, per totali istantanei */
+function prepRain(doc){
+  if(doc.RP||!RH)return;
+  var n=doc.n,P=new Float64Array(n+1),Mi=new Int32Array(n+1),i,r,off=Math.round((doc.t0-RH.t0)/HOUR);
+  for(i=0;i<n;i++){var k=off+i;r=(k>=0&&k<RH.n)?RH.v[k]:NaN;
+    P[i+1]=P[i]+(isNaN(r)?0:r);Mi[i+1]=Mi[i]+(isNaN(r)?1:0);}
+  doc.RP=P;doc.RM=Mi;
+}
+/* Totale sulle ore [a,b] incluse: {s,miss,n} */
+function rsum(a,b){
+  var d=st.doc;if(!d.RP)return null;
+  a=Math.max(0,a);b=Math.min(d.n-1,b);if(b<a)return null;
+  return {s:d.RP[b+1]-d.RP[a],miss:d.RM[b+1]-d.RM[a],n:b-a+1};
+}
+function fmtR(o,dec){
+  if(!o||o.miss>=o.n)return "n.d.";
+  return (o.miss?"≥ ":"")+fmt(o.s,dec);
+}
+function rainWin(){var want=speed*3,i;for(i=0;i<RWIN.length;i++)if(RWIN[i]>=want)return RWIN[i];return RWIN[RWIN.length-1];}
+function fmtSpan(hrs){if(hrs<48)return hrs+" h";var d=hrs/24;return fmt(d,d%1?1:0)+" g";}
+function lastSpan(hrs){return (hrs<48?"ultime ":"ultimi ")+fmtSpan(hrs);}
+function rrect(x,y,w,hh){return "M"+x.toFixed(1)+" "+y.toFixed(1)+"h"+w.toFixed(1)+"v"+hh.toFixed(1)+"h-"+w.toFixed(1)+"Z";}
+
 /* ---------- valori ---------- */
 function val(j,p){
   var g=st.s0+p,i=Math.floor(g),f=g-i,A=st.A[j];
@@ -279,6 +334,7 @@ function applyVar(){
   return loadVar(key,vk).then(function(doc){
     if(key!==st.key||vk!==st.vk)return;
     st.doc=doc;st.V=st.vars[vk];st.depths=doc.depths;st.A=doc.A;
+    st.roff=RH?Math.round((doc.t0-RH.t0)/HOUR):0;prepRain(doc);
     var fv=1e9,lv=-1;
     st.A.forEach(function(a){var i,k;
       for(i=0;i<a.length;i++)if(!isNaN(a[i])){if(i<fv)fv=i;break;}
@@ -324,10 +380,16 @@ function applyRange(){
       if(isNaN(lo)||v<lo)lo=v;if(isNaN(hi)||v>hi)hi=v;}}
     cov.push(c/Math.max(1,s1-s0+1));base.push(b);jmin.push(lo);jmax.push(hi);});
   st.base=base;st.jmin=jmin;st.jmax=jmax;st.empty=(st.L<1||vmax<vmin);
+  /* fondo scala della fascia di pioggia: fisso sul periodo scelto, così le intensità restano confrontabili */
+  var rmx=0,rn_=0,ri_;
+  for(ri_=s0;ri_<=s1;ri_++){var rr=rainH(ri_);if(!isNaN(rr)){rn_++;if(rr>rmx)rmx=rr;}}
+  st.rainAny=rn_>0;st.rmax=rmx;st.rscale=RSCALE[RSCALE.length-1];
+  for(ri_=0;ri_<RSCALE.length;ri_++)if(RSCALE[ri_]>=rmx){st.rscale=RSCALE[ri_];break;}
   $("th-unit").textContent=(st.vk==="psi"?"|ψ| kPa":st.V.unit);
   var rn="Il profilo unisce con segmenti rettilinei i sensori che hanno un dato in quell'istante. Sopra e sotto i sensori non ci sono misure. Minimo e massimo del periodo sono calcolati per ogni profondità sul periodo scelto; minimo e massimo della serie di dati su tutti i dati disponibili per quella profondità (medie orarie). L'asse del profilo è esteso per mostrarli.";
   if(st.vk==="psi")rn+=" Il grafico mostra la suzione |ψ|, cioè il valore assoluto del potenziale matriciale, in scala logaritmica.";
   if(st.vk==="sr")rn+=" 100 % corrisponde al terreno saturo.";
+  rn+=" In alto, sopra la superficie, le barre capovolte sono la pioggia oraria del pluviometro di Vaglio (condizione al contorno): scorrono con l'animazione, l'ora in corso è a destra (in colore). La finestra si allunga con la velocità; quando le ore sono più delle barre disponibili, ogni barra mostra il massimo orario del blocco. L'altezza delle barre è in scala a radice quadrata (per vedere anche le piogge deboli) con fondo scala fisso sul periodo scelto. Un tratto sottile in alto segna le ore senza dato; i totali a destra con «≥» sono parziali per ore mancanti.";
   $("rnote").textContent=rn;
   $("avail").textContent=st.avail+" Copertura dei dati nel periodo scelto: "+
     st.depths.map(function(d,j){return d+" cm "+Math.round(cov[j]*100)+" %";}).join(" · ")+".";
@@ -350,8 +412,10 @@ function applyRange(){
 /* ---------- grafico del profilo ---------- */
 function buildMain(){
   var host=$("main");host.textContent="";
-  var W=Math.max(260,host.clientWidth||520),H=Math.round(Math.min(340,Math.max(290,W*0.5)));
-  var m={l:40,r:20,t:34,b:50};
+  var W=Math.max(260,host.clientWidth||520);
+  var m={l:52,r:20,t:34+RBAND+18,b:50};          /* in alto: titolo, fascia di pioggia, righe delle etichette */
+  var H=Math.round(Math.min(340,Math.max(290,W*0.5)))+(m.t-34);
+  var bt=24,bb=bt+RBAND;
   var svg=el(host,"svg",{width:W,height:H,viewBox:"0 0 "+W+" "+H,role:"img","aria-label":"Profilo del valore misurato in funzione della profondità, animato nel tempo"});
   var maxD=Math.max.apply(null,st.depths),y1=Math.ceil((maxD+5)/10)*10;
   var D=st.dG;   /* asse ampio: comprende anche minimo e massimo della serie di dati */
@@ -363,8 +427,35 @@ function buildMain(){
   [0].concat(st.depths).forEach(function(d){
     el(svg,"line",{x1:m.l,x2:W-m.r,y1:Y(d),y2:Y(d),stroke:d===0?"var(--ink2)":"var(--rule)","stroke-width":d===0?2:1,"stroke-dasharray":d===0?"":"2 4"});
     el(svg,"text",{x:m.l-8,y:Y(d)+4,"text-anchor":"end","class":"num"},String(d));});
-  el(svg,"text",{x:W-m.r,y:Y(0)-8,"text-anchor":"end","class":"ttl"},"superficie");
-  el(svg,"text",{x:4,y:14,"class":"ttl"},"Profondità (cm)");
+  if(W>=520)el(svg,"text",{x:W-m.r,y:Y(0)+16,"text-anchor":"end","class":"ttl"},"superficie");
+  var tyc=(Y(0)+Y(y1))/2;
+  el(svg,"text",{x:13,y:tyc,"text-anchor":"middle","class":"ttl",transform:"rotate(-90 13 "+tyc+")"},"Profondità (cm)");
+  /* fascia della pioggia oraria: idrogramma capovolto, le barre «cadono» verso la superficie del terreno */
+  var rsc=st.rscale,bw=W-m.l-m.r;
+  el(svg,"line",{x1:m.l,x2:W-m.r,y1:bb,y2:bb,stroke:"var(--grid)","stroke-width":1});
+  el(svg,"line",{x1:(m.l+W-m.r)/2,x2:(m.l+W-m.r)/2,y1:bt,y2:bb,stroke:"var(--grid)","stroke-width":1,"stroke-dasharray":"2 3"});
+  var rmiss=el(svg,"path",{fill:"var(--rule)",opacity:.9});
+  var rpast=el(svg,"path",{fill:"var(--rain)"});
+  var rcur=el(svg,"path",{fill:"var(--accent)"});
+  el(svg,"line",{x1:m.l,x2:W-m.r,y1:bt,y2:bt,stroke:"var(--ink2)","stroke-width":1.5});
+  el(svg,"line",{x1:W-m.r,x2:W-m.r,y1:bt-2,y2:bb,stroke:"var(--accent)","stroke-width":1.5});
+  el(svg,"text",{x:m.l-8,y:bt+4,"text-anchor":"end","class":"num"},"0");
+  el(svg,"text",{x:m.l-8,y:bb+4,"text-anchor":"end","class":"num"},String(rsc));
+  /* tacche intermedie (scala a radice quadrata), solo se restano ben separate */
+  var lastPx=0;
+  [1,2,5,10,20,50].forEach(function(tv){
+    if(tv>=rsc)return;
+    var px=Math.sqrt(tv/rsc)*RBAND;
+    if(px-lastPx<12||RBAND-px<12)return;
+    lastPx=px;
+    el(svg,"line",{x1:m.l,x2:W-m.r,y1:bt+px,y2:bt+px,stroke:"var(--grid)","stroke-width":1,"stroke-dasharray":"1 3"});
+    el(svg,"text",{x:m.l-8,y:bt+px+4,"text-anchor":"end","class":"num"},String(tv));});
+  var rtitle=el(svg,"text",{x:m.l,y:13,"class":"ttl"},"");
+  var rnow=el(svg,"text",{x:W-m.r,y:13,"text-anchor":"end","class":"num"},"");
+  var tl0=el(svg,"text",{x:m.l,y:bb+14,"text-anchor":"start","class":"ttl"},"");
+  var tl1=el(svg,"text",{x:(m.l+W-m.r)/2,y:bb+14,"text-anchor":"middle","class":"ttl"},"");
+  el(svg,"text",{x:W-m.r,y:bb+14,"text-anchor":"end","class":"ttl"},"ora");
+  var rmsg=el(svg,"text",{x:(m.l+W-m.r)/2,y:bt+RBAND/2+4,"text-anchor":"middle","class":"msg"},st.rainAny?"":"Pioggia oraria non disponibile nel periodo scelto");
   var xt=st.vk==="psi"?"Suzione |ψ| (kPa, scala logaritmica)":st.V.label+" ("+st.V.unit+")";
   el(svg,"text",{x:(m.l+W-m.r)/2,y:H-8,"text-anchor":"middle","class":"ttl"},xt);
   var n=st.depths.length;
@@ -373,7 +464,8 @@ function buildMain(){
    [st.jmin,"7 3","var(--ink)",.6],[st.jmax,"2 3","var(--ink)",.6]].forEach(function(e){
     var ep=[];st.depths.forEach(function(d,j){if(!isNaN(e[0][j]))ep.push([X(e[0][j]),Y(d)]);});
     el(svg,"path",{d:ep.length>1?pathOf(ep):"",fill:"none",stroke:e[2],"stroke-width":1.8,"stroke-dasharray":e[1],opacity:e[3],"stroke-linejoin":"round"});});
-  M={svg:svg,X:X,Y:Y,W:W,H:H,m:m,trail:[],cur:null,dots:[],labs:[],msg:null};
+  M={svg:svg,X:X,Y:Y,W:W,H:H,m:m,trail:[],cur:null,dots:[],labs:[],msg:null,
+     band:{top:bt,bot:bb,h:RBAND},rmiss:rmiss,rpast:rpast,rcur:rcur,rtitle:rtitle,rnow:rnow,tl0:tl0,tl1:tl1,lastWin:0,lastK:0};
   for(var k=0;k<6;k++)M.trail.push(el(svg,"path",{fill:"none",stroke:"var(--ink)","stroke-width":1.6,"stroke-linejoin":"round",opacity:0}));
   M.cur=el(svg,"path",{fill:"none",stroke:"var(--ink)","stroke-width":2.5,"stroke-linejoin":"round"});
   st.depths.forEach(function(d,j){
@@ -408,6 +500,38 @@ function updMain(){
     M.labs[j].setAttribute("text-anchor",right?"start":"end");
     M.labs[j].textContent=fmt(v,st.V.dec);});
   M.msg.textContent=any?"":"Nessun dato valido in questo istante";
+}
+
+/* Fascia di pioggia: finestra che termina all'ora in corso (a destra), scorre in continuo con l'animazione.
+   Ogni ora è un campione centrato sulla sua etichetta, come i valori dei sensori; l'ora in corso è quella
+   mostrata dall'orologio. Nessuna barra oltre l'ora in corso: il futuro non si vede. */
+function updRain(){
+  if(!M.svg||!M.band)return;
+  var win=rainWin(),pw=M.W-M.m.l-M.m.r,k=1,q;
+  for(q=0;q<RBLK.length;q++){k=RBLK[q];if(win/k<=pw/2)break;}
+  if(M.lastWin!==win||M.lastK!==k){
+    M.lastWin=win;M.lastK=k;
+    M.rtitle.textContent=M.W>=760
+      ?"Pioggia oraria in superficie (mm/h, scala √) · "+lastSpan(win)+(k>1?" · massimo orario ogni "+k+" h":"")
+      :"Pioggia oraria (mm/h) · "+lastSpan(win)+(k>1?" · max/"+k+" h":"");
+    M.tl0.textContent="−"+fmtSpan(win);M.tl1.textContent="−"+fmtSpan(win/2);}
+  var g=st.s0+pos,cur=st.s0+Math.round(pos),curB=Math.floor(cur/k);
+  var xR=M.W-M.m.r,xL=M.m.l,pxH=pw/win,bt=M.band.top,bh=M.band.h,rs=st.rscale;
+  var pPast="",pCur="",pMiss="";
+  var b0=Math.floor((g+0.5-win+0.5)/k),b1=curB,b,i,v,r,x1,x2,w,hh,gp;
+  for(b=b0;b<=b1;b++){
+    x1=xR-(g+0.5-(b*k-0.5))*pxH;x2=xR-(g+0.5-(b*k+k-0.5))*pxH;
+    if(x1<xL)x1=xL;if(x2>xR)x2=xR;if(x2<=x1)continue;
+    v=NaN;
+    for(i=b*k;i<b*k+k&&i<=cur;i++){r=rainH(i);if(!isNaN(r))v=isNaN(v)?r:Math.max(v,r);}
+    w=x2-x1;gp=w>3?0.6:0;
+    if(isNaN(v)){pMiss+=rrect(x1+gp,bt,w-2*gp,3);continue;}
+    if(v<=0)continue;
+    hh=Math.max(1.2,Math.min(bh,Math.sqrt(v/rs)*bh));   /* scala a radice quadrata: rende visibili anche le piogge deboli */
+    if(b===curB)pCur+=rrect(x1+gp,bt,w-2*gp,hh);else pPast+=rrect(x1+gp,bt,w-2*gp,hh);
+  }
+  M.rpast.setAttribute("d",pPast);M.rcur.setAttribute("d",pCur);M.rmiss.setAttribute("d",pMiss);
+  if(M.W>=760){var vn=rainH(cur);M.rnow.textContent="ora in corso: "+(isNaN(vn)?"n.d.":fmt(vn,1)+" mm/h");}
 }
 
 /* ---------- serie nel tempo, con pioggia ---------- */
@@ -499,6 +623,11 @@ function updStrip(){
 
 /* ---------- lettura numerica ---------- */
 function buildRows(){
+  var rb=$("rrows");rb.textContent="";
+  [["rn","Ora in corso"],["r6","Ultime 6 h"],["r24","Ultime 24 h"],["rc","Dall'inizio del periodo"]].forEach(function(p){
+    var tr=h("tr",{}),a=h("td",{}),b=h("td",{id:p[0]});
+    if(p[0]==="rn"){var sw=h("span",{"class":"sw bar"});sw.style.background="var(--accent)";a.appendChild(sw);}
+    a.appendChild(document.createTextNode(p[1]));tr.appendChild(a);tr.appendChild(b);rb.appendChild(tr);});
   var tb=$("rows");tb.textContent="";var n=st.depths.length;
   st.depths.forEach(function(d,j){
     var tr=h("tr",{}),a=h("td",{}),b=h("td",{id:"v"+j}),c=h("td",{id:"c"+j});
@@ -512,16 +641,21 @@ function updRead(){
   st.depths.forEach(function(dep,j){var v=val(j,pos);
     $("v"+j).textContent=isNaN(v)?"n.d.":fmt(v,st.V.dec);
     $("c"+j).textContent=(isNaN(v)||isNaN(st.base[j]))?"n.d.":fmtD(v-st.base[j],st.V.dec);});
+  var cur=st.s0+Math.round(pos),rv=rainH(cur);
+  $("rn").textContent=isNaN(rv)?"n.d.":fmt(rv,1);
+  $("r6").textContent=fmtR(rsum(cur-5,cur),1);
+  $("r24").textContent=fmtR(rsum(cur-23,cur),1);
+  $("rc").textContent=fmtR(rsum(st.s0,cur),1);
   $("scrub").value=Math.round(pos);
 }
-function render(){if(st.empty)return;updMain();updStrip();updRead();}
+function render(){if(st.empty)return;updMain();updRain();updStrip();updRead();}
 function build(){if(st.empty)return;buildMain();buildStrip();render();}
 
 /* ---------- animazione ---------- */
 function buildSpeeds(){
   var box=$("speeds");box.textContent="";
   SPEEDS.forEach(function(sp){var b=h("button",{type:"button"},sp.l);if(sp.h===speed)b.className="on";
-    b.addEventListener("click",function(){speed=sp.h;buildSpeeds();});box.appendChild(b);});
+    b.addEventListener("click",function(){speed=sp.h;buildSpeeds();render();});box.appendChild(b);});
 }
 function setPlaying(on){
   playing=on&&!st.empty;
@@ -550,7 +684,7 @@ fetch("catalog.json").then(function(r){if(!r.ok)throw new Error("catalog "+r.sta
   CAT=c;
   var g=String(c.generated||"").slice(0,10).split("-").reverse().join("/");
   if(g)$("foot").appendChild(document.createTextNode(" Catalogo aggiornato il "+g+"."));
-  return loadRain();
+  return Promise.all([loadRain(),loadRainH()]);
 }).then(function(){
   fillStations();return chooseStation(st.key);
 }).catch(function(e){
